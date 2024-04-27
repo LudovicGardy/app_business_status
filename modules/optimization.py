@@ -3,7 +3,7 @@ from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
 from modules.calcul_dividendes import calcul_dividendes
 from modules.calcul_IR import calculer_IR
  
-# Fonction objectif
+# Objective function
 def objective(hyperopt_params):
 
     # Calculs basés sur le code que tu as fourni

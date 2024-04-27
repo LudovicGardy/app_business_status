@@ -9,6 +9,65 @@ from modules.calcul_IR import calculer_IR
 from modules.calcul_resultat import calcul_resultat_net
 from modules.calcul_dividendes import calcul_dividendes
 from modules.optimization import run_optimization
+from modules.config import firebase_credentials, page_config, data_URL, azure_credentials, bigquery_credentials
+
+###-----------------------------------------------------------------------
+### CONFIGS
+st.set_page_config(page_title=page_config().get('page_title'), 
+                    page_icon = page_config().get('page_icon'),  
+                    layout = page_config().get('layout'),
+                    initial_sidebar_state = page_config().get('initial_sidebar_state'))
+
+###-----------------------------------------------------------------------
+### PARAMETERS
+if 'type_societe' not in st.session_state:
+    st.session_state['type_societe'] = 0
+if 'choix_fiscal' not in st.session_state:
+    st.session_state['choix_fiscal'] = 0
+if 'capital_social_societe' not in st.session_state:
+    st.session_state['capital_social_societe'] = 1000
+if 'chiffre_affaire_HT' not in st.session_state:
+    st.session_state['chiffre_affaire_HT'] = 200000
+if 'charges_deductibles' not in st.session_state:
+    st.session_state['charges_deductibles'] = 32000
+if 'salaire_annuel_sansCS_avantIR' not in st.session_state:
+    st.session_state['salaire_annuel_sansCS_avantIR'] = 10000
+if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
+    st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
+
+###-----------------------------------------------------------------------
+### FUNCTIONS
+def steup_sidebar():
+    '''
+    Set up the sidebar.
+    '''
+
+    logo_path = page_config().get('page_logo')
+    desired_width = 60
+
+    col1, col2 = st.columns([1, 3])
+    
+    with col1:
+        st.image(logo_path, width=desired_width)
+    with col2:
+        st.write('# Sotis A.I.')
+
+    st.caption('''Ce prototype est conçu pour fournir des insights plus clairs sur le choix entre deux structures juridiques françaises courantes : la EURL et la SASU.
+                \nVisitez https://www.sotisanalytics.com pour en savoir plus, signaler un problème, suggérer une idée ou me contacter. Profitez de votre exploration !
+                \nSotis A.I.© 2024''')
+
+    st.divider()
+
+    # # Définir les options d'onglet dans la sidebar
+    # page = st.sidebar.radio("Navigate to", ('Page 1', 'Page 2'))
+
+    # # Gestion des pages selon l'onglet sélectionné
+    # if page == 'Page 1':
+    #     st.title("Page 1")
+    #     st.write("Contenu de la Page 1 - Vous pouvez mettre ici des informations ou des fonctionnalités liées à la comparaison des structures EURL vs SASU.")
+    # elif page == 'Page 2':
+    #     st.title("Page 2")
+    #     st.write("Contenu de la Page 2 - Cette page pourrait inclure, par exemple, des calculatrices fiscales ou des analyses de responsabilité pour chaque structure juridique.")
 
 def write_results(chiffre_affaire_HT, 
                   charges_deductibles, 
@@ -57,21 +116,9 @@ def write_results(chiffre_affaire_HT,
     st.divider()
 
 ###-----------------------------------------------------------------------
-### PARAMETERS
-if 'type_societe' not in st.session_state:
-    st.session_state['type_societe'] = 0
-if 'choix_fiscal' not in st.session_state:
-    st.session_state['choix_fiscal'] = 0
-if 'capital_social_societe' not in st.session_state:
-    st.session_state['capital_social_societe'] = 1000
-if 'chiffre_affaire_HT' not in st.session_state:
-    st.session_state['chiffre_affaire_HT'] = 200000
-if 'charges_deductibles' not in st.session_state:
-    st.session_state['charges_deductibles'] = 32000
-if 'salaire_annuel_sansCS_avantIR' not in st.session_state:
-    st.session_state['salaire_annuel_sansCS_avantIR'] = 10000
-if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
-    st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
+### SIDEBAR
+with st.sidebar:
+    steup_sidebar()
 
 ###-----------------------------------------------------------------------
 ### TITLE

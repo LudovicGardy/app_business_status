@@ -248,3 +248,6 @@ class Calculator:
                         president_net_apres_IR, 
                         taxes_total,
                         supplement_IR)
+
+### Run app
+app = App()

@@ -9,7 +9,7 @@ from modules.calcul_IR import calculer_IR
 from modules.calcul_resultat import calcul_resultat_net
 from modules.calcul_dividendes import calcul_dividendes
 from modules.optimization import objective, run_optimization
-from modules.config import firebase_credentials, page_config, data_URL, azure_credentials, bigquery_credentials
+from modules.config import page_config
 
 ###-----------------------------------------------------------------------
 ### CONFIGS
@@ -67,11 +67,9 @@ class App:
         with col1:
             st.image(logo_path, width=desired_width)
         with col2:
-            st.write('# Sotis A.I.')
+            st.write(page_config().get('page_title'))
 
-        st.caption('''Ce prototype est conçu pour fournir des insights plus clairs sur le choix entre deux structures juridiques françaises courantes : la EURL et la SASU.
-                    \nVisitez https://www.sotisanalytics.com pour en savoir plus, signaler un problème, suggérer une idée ou me contacter. Profitez de votre exploration !
-                    \nSotis A.I.© 2024''')
+        st.caption(page_config().get('page_description'))
 
         st.divider()
 

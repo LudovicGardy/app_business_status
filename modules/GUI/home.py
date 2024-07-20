@@ -5,40 +5,21 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
 
-from modules.calcul_IR import calculer_IR
-from modules.calcul_resultat import calcul_resultat_net
-from modules.calcul_dividendes import calcul_dividendes
-from modules.optimization import objective, run_optimization
-from modules.config import page_config
+from ..calcul_IR import calculer_IR
+from ..calcul_resultat import calcul_resultat_net
+from ..calcul_dividendes import calcul_dividendes
+from ..optimization import objective, run_optimization
+from ..config import page_config
 
-###-----------------------------------------------------------------------
-### CONFIGS
-st.set_page_config(page_title=page_config().get('page_title'), 
-                    page_icon = page_config().get('page_icon'),  
-                    layout = page_config().get('layout'),
-                    initial_sidebar_state = page_config().get('initial_sidebar_state'))
 
-###-----------------------------------------------------------------------
-### PARAMETERS
-if 'type_societe' not in st.session_state:
-    st.session_state['type_societe'] = 0
-if 'choix_fiscal' not in st.session_state:
-    st.session_state['choix_fiscal'] = 0
-if 'capital_social_societe' not in st.session_state:
-    st.session_state['capital_social_societe'] = 1000
-if 'chiffre_affaire_HT' not in st.session_state:
-    st.session_state['chiffre_affaire_HT'] = 200000
-if 'charges_deductibles' not in st.session_state:
-    st.session_state['charges_deductibles'] = 32000
-if 'salaire_annuel_sansCS_avantIR' not in st.session_state:
-    st.session_state['salaire_annuel_sansCS_avantIR'] = 10000
-if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
-    st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
 
 class App: 
-    ###-----------------------------------------------------------------------
-    ### INITIALIZATION
+
     def __init__(self):
+
+        self.init_page_config()
+        self.init_session_state()
+
         with st.sidebar:
             self.setup_sidebar()
 
@@ -52,8 +33,6 @@ class App:
             st.title("Page 2")
             st.write("Contenu de la Page 2 - Cette page pourrait inclure, par exemple, des calculatrices fiscales ou des analyses de responsabilité pour chaque structure juridique.")
 
-    ###-----------------------------------------------------------------------
-    ### FUNCTIONS
     def setup_sidebar(self):
         '''
         Set up the sidebar.
@@ -73,6 +52,27 @@ class App:
 
         st.divider()
 
+    def init_session_state(self):
+        if 'type_societe' not in st.session_state:
+            st.session_state['type_societe'] = 0
+        if 'choix_fiscal' not in st.session_state:
+            st.session_state['choix_fiscal'] = 0
+        if 'capital_social_societe' not in st.session_state:
+            st.session_state['capital_social_societe'] = 1000
+        if 'chiffre_affaire_HT' not in st.session_state:
+            st.session_state['chiffre_affaire_HT'] = 200000
+        if 'charges_deductibles' not in st.session_state:
+            st.session_state['charges_deductibles'] = 32000
+        if 'salaire_annuel_sansCS_avantIR' not in st.session_state:
+            st.session_state['salaire_annuel_sansCS_avantIR'] = 10000
+        if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
+            st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
+
+    def init_page_config(self): ### Must be called before any other st. function
+        st.set_page_config(page_title=page_config().get('page_title'), 
+                    page_icon = page_config().get('page_icon'),  
+                    layout = page_config().get('layout'),
+                    initial_sidebar_state = page_config().get('initial_sidebar_state'))
 
 class Calculator:
 
@@ -126,8 +126,7 @@ class Calculator:
         st.divider()
 
     def run(self):
-        ###-----------------------------------------------------------------------
-        ### TITLE
+
         st.title("Simulateur de coûts, salaires et dividendes pour SASU et EURL")
 
         ###-----------------------------------------------------------------------

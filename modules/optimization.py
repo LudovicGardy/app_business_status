@@ -1,8 +1,6 @@
 import streamlit as st
 from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
-from modules.calcul_dividendes import calcul_dividendes
-from modules.calcul_IR import calculer_IR
-from modules.calcul_resultat import calcul_resultat_net
+from modules.calculs import calcul_dividendes, calculer_IR, calcul_resultat_net
  
 # Objective function
 def objective(hyperopt_params):

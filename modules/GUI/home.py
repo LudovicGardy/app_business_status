@@ -46,7 +46,7 @@ class DisplayResults:
         st.divider()
 
         labels = ['Salaire Net', 'Dividendes', 'Reste en trésorerie', 'Taxes', 'Charges déductibles']
-        values = [self.params.salaire_annuel_sansCS_avantIR, self.params.dividendes_recus, self.params.reste_tresorerie, self.params.taxse_total, self.params.charges_deductibles]
+        values = [self.params.salaire_annuel_sansCS_avantIR, self.params.dividendes_recus, self.params.reste_tresorerie, self.params.taxes_total, self.params.charges_deductibles]
 
         color_map = {
             'Salaire Net': 'lightgreen',
@@ -146,34 +146,34 @@ class IncomeCalculator:
 
         if st.button('Afficher les résultats'):
 
-            benefice_apres_charges_deductibles, societe_resultat_net_apres_IS, salaire_annuel_sansCS_avantIR, CS_sur_salaire_annuel, benefices_apres_salaire_president, impots_sur_les_societes = calcul_resultat_net(
+            self.resultat_net = calcul_resultat_net(
                 chiffre_affaire_HT, charges_deductibles, type_societe, salaire_annuel_sansCS_avantIR
             )
-            charges_sur_dividendes, dividendes_recus, reste_tresorerie, supplement_IR = calcul_dividendes(
-                societe_resultat_net_apres_IS, proportion_du_resultat_versee_en_dividende, type_societe, choix_fiscal, capital_social_societe
+            self.resultat_dividendes = calcul_dividendes(
+                self.resultat_net.societe_resultat_net_apres_IS, proportion_du_resultat_versee_en_dividende, type_societe, choix_fiscal, capital_social_societe
             )
-            president_imposable_total = salaire_annuel_sansCS_avantIR + supplement_IR
+            president_imposable_total = self.resultat_net.salaire_annuel_sansCS_avantIR + self.resultat_dividendes.supplement_IR
 
-            impot_sur_le_revenu = calculer_IR(president_imposable_total)
-            president_net_apres_IR = salaire_annuel_sansCS_avantIR + dividendes_recus - impot_sur_le_revenu
-            taxes_total = CS_sur_salaire_annuel + impots_sur_les_societes + charges_sur_dividendes + impot_sur_le_revenu
+            self.resultat_IR = calculer_IR(president_imposable_total)
+            president_net_apres_IR = self.resultat_net.salaire_annuel_sansCS_avantIR + self.resultat_dividendes.dividendes_recus_par_president_annuellement - self.resultat_IR.impot_sur_le_revenu
+            taxes_total = self.resultat_net.charges_sociales_sur_salaire_president + self.resultat_net.impots_sur_les_societes + self.resultat_dividendes.charges_sur_dividendes + self.resultat_IR.impot_sur_le_revenu
 
             results = DisplayResults(chiffre_affaire_HT=chiffre_affaire_HT,
                                      charges_deductibles=charges_deductibles,
-                                    benefice_apres_charges_deductibles=benefice_apres_charges_deductibles,
-                                    salaire_annuel_sansCS_avantIR=salaire_annuel_sansCS_avantIR,
-                                    CS_sur_salaire_annuel=CS_sur_salaire_annuel,
-                                    benefices_apres_salaire_president=benefices_apres_salaire_president,
-                                    impots_sur_les_societes=impots_sur_les_societes,
-                                    societe_resultat_net_apres_IS=societe_resultat_net_apres_IS,
-                                    charges_sur_dividendes=charges_sur_dividendes,
-                                    dividendes_recus=dividendes_recus,
-                                    reste_tresorerie=reste_tresorerie,
+                                    benefice_apres_charges_deductibles=self.resultat_net.benefice_apres_charges_deductibles,
+                                    salaire_annuel_sansCS_avantIR=self.resultat_net.salaire_annuel_sansCS_avantIR,
+                                    CS_sur_salaire_annuel=self.resultat_net.charges_sociales_sur_salaire_president,
+                                    benefices_apres_salaire_president=self.resultat_net.benefices_apres_salaire_president,
+                                    impots_sur_les_societes=self.resultat_net.impots_sur_les_societes,
+                                    societe_resultat_net_apres_IS=self.resultat_net.societe_resultat_net_apres_IS,
+                                    charges_sur_dividendes=self.resultat_dividendes.charges_sur_dividendes,
+                                    dividendes_recus=self.resultat_dividendes.dividendes_recus_par_president_annuellement,
+                                    reste_tresorerie=self.resultat_dividendes.reste_tresorerie,
                                     president_imposable_total=president_imposable_total,
-                                    impot_sur_le_revenu=impot_sur_le_revenu,
+                                    impot_sur_le_revenu=self.resultat_IR.impot_sur_le_revenu,
                                     president_net_apres_IR=president_net_apres_IR,
                                     taxes_total=taxes_total,
-                                    supplement_IR=supplement_IR)
+                                    supplement_IR=self.resultat_dividendes.supplement_IR)
                         
             results.plot_results()
             results.text_results()

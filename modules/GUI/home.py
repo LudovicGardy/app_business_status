@@ -4,126 +4,88 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import plotly.express as px
 from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
+from types import SimpleNamespace
 
-from ..calcul_IR import calculer_IR
-from ..calcul_resultat import calcul_resultat_net
-from ..calcul_dividendes import calcul_dividendes
+from ..calculs import calculer_IR, calcul_resultat_net, calcul_dividendes
 from ..optimization import objective, run_optimization
-from ..config import page_config
 
 
+class DisplayResults:
+    def __init__(self, **kwargs):
+        self.params = SimpleNamespace(**kwargs)
 
-class App: 
-
-    def __init__(self):
-
-        self.init_page_config()
-        self.init_session_state()
-
-        with st.sidebar:
-            self.setup_sidebar()
-
-        # Définir les options d'onglet dans la sidebar
-        page = st.sidebar.radio("Sélectionnez une action :", ('Calculer le revenu', 'Optimiser le revenu'))
-
-        # Gestion des pages selon l'onglet sélectionné
-        if page == 'Calculer le revenu':
-            calc = Calculator()
-        elif page == 'Optimiser le revenu':
-            st.title("Page 2")
-            st.write("Contenu de la Page 2 - Cette page pourrait inclure, par exemple, des calculatrices fiscales ou des analyses de responsabilité pour chaque structure juridique.")
-
-    def setup_sidebar(self):
-        '''
-        Set up the sidebar.
-        '''
-
-        logo_path = page_config().get('page_logo')
-        desired_width = 60
-
-        col1, col2 = st.columns([1, 3])
-        
-        with col1:
-            st.image(logo_path, width=desired_width)
-        with col2:
-            st.write(page_config().get('page_title'))
-
-        st.caption(page_config().get('page_description'))
-
+    def text_results(self):
+        st.write("### Resultats nets")
+        st.divider()
+        st.write(f"\+ chiffre affaire HT: :green[{self.params.chiffre_affaire_HT} €]")
+        st.write(f"\- charges deductibles: :red[{self.params.charges_deductibles} €]")
+        st.write(f"\= benefices apres charges deductibles: :blue[{self.params.benefice_apres_charges_deductibles} €]")
+        st.divider()
+        st.write(f"\- salaire recu par le president: :red[{self.params.salaire_annuel_sansCS_avantIR} €]")
+        st.write(f"\- charges sur salaire president: :red[{self.params.CS_sur_salaire_annuel} €]")
+        st.write(f"\= benefices apres salaire president: :blue[{self.params.benefices_apres_salaire_president} €]")
+        st.divider()
+        st.write(f"\- impots sur les societes: :red[{self.params.impots_sur_les_societes} €]")
+        st.write(f"\= societe resultat net apres IS: :blue[{self.params.societe_resultat_net_apres_IS} €]")
+        st.divider()
+        st.write("### Dividendes")
+        st.write(f"\- dividendes recus par president annuellement: :red[{self.params.dividendes_recus} €]")
+        st.write(f"\- charges sur dividendes: :red[{self.params.charges_sur_dividendes} €]")
+        st.write(f"\= reste tresorerie: :blue[{self.params.reste_tresorerie} €]")
+        st.divider()
+        st.write("### Resultats pour le president")
+        st.write(f"- Revenu annuel imposable: {self.params.president_imposable_total} € \n  - Salaire: {self.params.salaire_annuel_sansCS_avantIR} € (imposable: {self.params.salaire_annuel_sansCS_avantIR} €) \n  - Dividendes: {self.params.dividendes_recus} € (imposable: {self.params.supplement_IR} €)")
+        st.write(f"Pour un revenu annuel de {self.params.president_imposable_total:.2f} €, l'impot dû est de {self.params.impot_sur_le_revenu:.2f} €.")
+        st.write(f"Après import sur le revenu, le président gagne {self.params.president_net_apres_IR:.2f} €.")
+        st.divider()
+        st.write(f"Nota Bene 1: TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * 0.2} €")
+        st.write(f"Nota Bene 2: Total des charges sans la TVA: {self.params.taxes_total} €")
         st.divider()
 
-    def init_session_state(self):
-        if 'type_societe' not in st.session_state:
-            st.session_state['type_societe'] = 0
-        if 'choix_fiscal' not in st.session_state:
-            st.session_state['choix_fiscal'] = 0
-        if 'capital_social_societe' not in st.session_state:
-            st.session_state['capital_social_societe'] = 1000
-        if 'chiffre_affaire_HT' not in st.session_state:
-            st.session_state['chiffre_affaire_HT'] = 200000
-        if 'charges_deductibles' not in st.session_state:
-            st.session_state['charges_deductibles'] = 32000
-        if 'salaire_annuel_sansCS_avantIR' not in st.session_state:
-            st.session_state['salaire_annuel_sansCS_avantIR'] = 10000
-        if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
-            st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
+    def plot_results(self):
+        st.divider()
 
-    def init_page_config(self): ### Must be called before any other st. function
-        st.set_page_config(page_title=page_config().get('page_title'), 
-                    page_icon = page_config().get('page_icon'),  
-                    layout = page_config().get('layout'),
-                    initial_sidebar_state = page_config().get('initial_sidebar_state'))
+        labels = ['Salaire Net', 'Dividendes', 'Reste en trésorerie', 'Taxes', 'Charges déductibles']
+        values = [self.params.salaire_annuel_sansCS_avantIR, self.params.dividendes_recus, self.params.reste_tresorerie, self.params.taxse_total, self.params.charges_deductibles]
 
-class Calculator:
+        color_map = {
+            'Salaire Net': 'lightgreen',
+            'Dividendes': 'limegreen',
+            'Reste en trésorerie': 'green',
+            'Taxes': 'salmon',
+            'Charges déductibles': 'red'
+        }
+
+        fig = px.pie(values=values, names=labels, title=f"Répartition financière après simulation pour un C.A. H.T. de {self.params.chiffre_affaire_HT} €", 
+                color=labels,
+                color_discrete_map=color_map)
+                    #  color_discrete_sequence=px.colors.sequential.RdBu)
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+class OptimizeIncome:
+    def __init__(self, space):
+        best_params, trials = run_optimization(space, objective)
+        st.write(f"Meilleurs paramètres:")
+
+        st.write(f"  . Dividendes reçus par le président: {trials.best_trial['result']['dividendes_recus']:.2f} €")
+        st.write(f"  . Reste en trésorerie: {trials.best_trial['result']['reste_tresorerie']:.2f} €")
+        st.write(f"  . Meilleur revenu net après IR: {-trials.best_trial['result']['loss']} €")    
+        
+        best_params['salaire_annuel_sansCS_avantIR'] = trials.best_trial['result']['write_results_dict']['salaire_annuel_sansCS_avantIR'] #int(best_params['salaire_annuel'])
+
+        ### Set new values and refresh
+        st.session_state['type_societe'] = int(best_params['type_societe'])
+        st.session_state['choix_fiscal'] = int(best_params['choix_fiscal'])
+        st.session_state['salaire_annuel_sansCS_avantIR'] = int(best_params['salaire_annuel_sansCS_avantIR'])
+        st.session_state['proportion_du_resultat_versee_en_dividende'] = int(best_params['proportion_dividende'] * 100)
+        st.session_state['charges_deductibles'] = int(best_params['charges_deductibles'])
+        print("best_params:", best_params)
+
+class IncomeCalculator:
 
     def __init__(self):
         self.run()
-
-    def write_results(self, chiffre_affaire_HT, 
-                    charges_deductibles, 
-                    benefice_apres_charges_deductibles, 
-                    salaire_annuel_sansCS_avantIR, 
-                    CS_sur_salaire_annuel,
-                    benefices_apres_salaire_president,
-                    impots_sur_les_societes,
-                    societe_resultat_net_apres_IS,
-                    charges_sur_dividendes,
-                    dividendes_recus,
-                    reste_tresorerie,
-                    president_imposable_total,
-                    impot_sur_le_revenu,
-                    president_net_apres_IR,
-                    taxes_total, 
-                    supplement_IR
-                    ):
-
-        ### Affichage des résultats
-        st.write("### Resultats nets")
-        st.divider()
-        st.write(f"\+ chiffre affaire HT: :green[{chiffre_affaire_HT} €]")
-        st.write(f"\- charges deductibles: :red[{charges_deductibles} €]")
-        st.write(f"\= benefices apres charges deductibles: :blue[{benefice_apres_charges_deductibles} €]")
-        st.divider()
-        st.write(f"\- salaire recu par le president: :red[{salaire_annuel_sansCS_avantIR} €]")
-        st.write(f"\- charges sur salaire president: :red[{CS_sur_salaire_annuel} €]")
-        st.write(f"\= benefices apres salaire president: :blue[{benefices_apres_salaire_president} €]")
-        st.divider()
-        st.write(f"\- impots sur les societes: :red[{impots_sur_les_societes} €]")
-        st.write(f"\= societe resultat net apres IS: :blue[{societe_resultat_net_apres_IS} €]")
-        st.divider()
-        st.write("### Dividendes")
-        st.write(f"\- dividendes recus par president annuellement: :red[{dividendes_recus} €]")
-        st.write(f"\- charges sur dividendes: :red[{charges_sur_dividendes} €]")
-        st.write(f"\= reste tresorerie: :blue[{reste_tresorerie} €]")
-        st.divider()
-        st.write("### Resultats pour le president")
-        st.write(f"- Revenu annuel imposable: {president_imposable_total} € \n  - Salaire: {salaire_annuel_sansCS_avantIR} € (imposable: {salaire_annuel_sansCS_avantIR} €) \n  - Dividendes: {dividendes_recus} € (imposable: {supplement_IR} €)")
-        st.write(f"Pour un revenu annuel de {president_imposable_total:.2f} €, l'impot dû est de {impot_sur_le_revenu:.2f} €.")
-        st.write(f"Après import sur le revenu, le président gagne {president_net_apres_IR:.2f} €.")
-        st.divider()
-        st.write(f"Nota Bene 1: TVA facturée approximativement (non comptée dans les calculs): {chiffre_affaire_HT * 0.2} €")
-        st.write(f"Nota Bene 2: Total des charges sans la TVA: {taxes_total} €")
-        st.divider()
 
     def run(self):
 
@@ -155,22 +117,7 @@ class Calculator:
             charges_deductibles = st.number_input("Charges déductibles (€)", min_value=0, value=st.session_state['charges_deductibles'], step=1000)
 
         if st.button('Optimiser le revenu du président'):
-            best_params, trials = run_optimization(space, objective)
-            st.write(f"Meilleurs paramètres:")
-
-            st.write(f"  . Dividendes reçus par le président: {trials.best_trial['result']['dividendes_recus']:.2f} €")
-            st.write(f"  . Reste en trésorerie: {trials.best_trial['result']['reste_tresorerie']:.2f} €")
-            st.write(f"  . Meilleur revenu net après IR: {-trials.best_trial['result']['loss']} €")    
-            
-            best_params['salaire_annuel_sansCS_avantIR'] = trials.best_trial['result']['write_results_dict']['salaire_annuel_sansCS_avantIR'] #int(best_params['salaire_annuel'])
-
-            ### Set new values and refresh
-            st.session_state['type_societe'] = int(best_params['type_societe'])
-            st.session_state['choix_fiscal'] = int(best_params['choix_fiscal'])
-            st.session_state['salaire_annuel_sansCS_avantIR'] = int(best_params['salaire_annuel_sansCS_avantIR'])
-            st.session_state['proportion_du_resultat_versee_en_dividende'] = int(best_params['proportion_dividende'] * 100)
-            st.session_state['charges_deductibles'] = int(best_params['charges_deductibles'])
-            print("best_params:", best_params)
+            optim = OptimizeIncome(space)
 
         ##-----------------------------------------------------------------------
         ## ANALYSE UNITAIRE
@@ -198,7 +145,7 @@ class Calculator:
             proportion_du_resultat_versee_en_dividende = st.slider("Proportion du résultat après IS versée en dividendes (%)", min_value=0, max_value=100, value=st.session_state['proportion_du_resultat_versee_en_dividende']) / 100.0
 
         if st.button('Afficher les résultats'):
-            st.divider()
+
             benefice_apres_charges_deductibles, societe_resultat_net_apres_IS, salaire_annuel_sansCS_avantIR, CS_sur_salaire_annuel, benefices_apres_salaire_president, impots_sur_les_societes = calcul_resultat_net(
                 chiffre_affaire_HT, charges_deductibles, type_societe, salaire_annuel_sansCS_avantIR
             )
@@ -211,40 +158,25 @@ class Calculator:
             president_net_apres_IR = salaire_annuel_sansCS_avantIR + dividendes_recus - impot_sur_le_revenu
             taxes_total = CS_sur_salaire_annuel + impots_sur_les_societes + charges_sur_dividendes + impot_sur_le_revenu
 
-            labels = ['Salaire Net', 'Dividendes', 'Reste en trésorerie', 'Taxes', 'Charges déductibles']
-            values = [salaire_annuel_sansCS_avantIR, dividendes_recus, reste_tresorerie, taxes_total, charges_deductibles]
+            results = DisplayResults(chiffre_affaire_HT=chiffre_affaire_HT,
+                                     charges_deductibles=charges_deductibles,
+                                    benefice_apres_charges_deductibles=benefice_apres_charges_deductibles,
+                                    salaire_annuel_sansCS_avantIR=salaire_annuel_sansCS_avantIR,
+                                    CS_sur_salaire_annuel=CS_sur_salaire_annuel,
+                                    benefices_apres_salaire_president=benefices_apres_salaire_president,
+                                    impots_sur_les_societes=impots_sur_les_societes,
+                                    societe_resultat_net_apres_IS=societe_resultat_net_apres_IS,
+                                    charges_sur_dividendes=charges_sur_dividendes,
+                                    dividendes_recus=dividendes_recus,
+                                    reste_tresorerie=reste_tresorerie,
+                                    president_imposable_total=president_imposable_total,
+                                    impot_sur_le_revenu=impot_sur_le_revenu,
+                                    president_net_apres_IR=president_net_apres_IR,
+                                    taxes_total=taxes_total,
+                                    supplement_IR=supplement_IR)
+                        
+            results.plot_results()
+            results.text_results()
 
-            color_map = {
-                'Salaire Net': 'lightgreen',
-                'Dividendes': 'limegreen',
-                'Reste en trésorerie': 'green',
-                'Taxes': 'salmon',
-                'Charges déductibles': 'red'
-            }
-
-            fig = px.pie(values=values, names=labels, title=f"Répartition financière après simulation pour un C.A. H.T. de {chiffre_affaire_HT} €", 
-                    color=labels,
-                    color_discrete_map=color_map)
-                        #  color_discrete_sequence=px.colors.sequential.RdBu)
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            self.write_results(chiffre_affaire_HT, 
-                        charges_deductibles, 
-                        benefice_apres_charges_deductibles, 
-                        salaire_annuel_sansCS_avantIR, 
-                        CS_sur_salaire_annuel, 
-                        benefices_apres_salaire_president, 
-                        impots_sur_les_societes, 
-                        societe_resultat_net_apres_IS, 
-                        charges_sur_dividendes, 
-                        dividendes_recus, 
-                        reste_tresorerie, 
-                        president_imposable_total, 
-                        impot_sur_le_revenu, 
-                        president_net_apres_IR, 
-                        taxes_total,
-                        supplement_IR)
-
-### Run app
-app = App()
+if __name__ == '__main__':
+    calculator = IncomeCalculator()

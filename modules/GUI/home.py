@@ -65,9 +65,11 @@ class DisplayResults:
 
 class OptimizeIncome:
     def __init__(self, space):
-        best_params, trials = run_optimization(space, objective)
-        st.write(f"Meilleurs paramètres:")
 
+        with st.spinner('Optimisation en cours...'):
+            best_params, trials = run_optimization(space, objective)
+
+        st.write(f"Meilleurs paramètres:")
         st.write(f"  . Dividendes reçus par le président: {trials.best_trial['result']['dividendes_recus']:.2f} €")
         st.write(f"  . Reste en trésorerie: {trials.best_trial['result']['reste_tresorerie']:.2f} €")
         st.write(f"  . Meilleur revenu net après IR: {-trials.best_trial['result']['loss']} €")    

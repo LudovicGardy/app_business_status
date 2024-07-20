@@ -1,4 +1,31 @@
-class calculer_IR:
+from types import SimpleNamespace
+import streamlit as st
+
+class Scenario:
+    def __init__(self, params):
+            self.params = params#SimpleNamespace(**kwargs)
+            self.calculate_scenario()
+
+    def calculate_scenario(self):
+        resultat_net = ResultatNet(
+            st.session_state['chiffre_affaire_HT'], self.params['charges_deductibles'], self.params['type_societe'], self.params['salaire_annuel_avecCS_avantIR'], hyperopt=True
+        )
+        resultat_dividendes = Dividendes(
+            resultat_net.societe_resultat_net_apres_IS, self.params['proportion_dividende'], self.params['type_societe'], self.params['choix_fiscal'], st.session_state['capital_social_societe']
+        )
+        president_imposable_total = resultat_net.salaire_annuel_sansCS_avantIR + resultat_dividendes.supplement_IR
+        resultat_IR = ImpotRevenus(president_imposable_total)
+        president_net_apres_IR = resultat_net.salaire_annuel_sansCS_avantIR + resultat_dividendes.dividendes_recus_par_president_annuellement - resultat_IR.impot_sur_le_revenu
+        taxes_total = resultat_net.charges_sociales_sur_salaire_president + resultat_net.impots_sur_les_societes + resultat_dividendes.charges_sur_dividendes + resultat_IR.impot_sur_le_revenu
+
+        self.resultat_net = resultat_net
+        self.resultat_dividendes = resultat_dividendes
+        self.resultat_IR = resultat_IR
+        self.president_imposable_total = president_imposable_total
+        self.president_net_apres_IR = president_net_apres_IR
+        self.taxes_total = taxes_total
+
+class ImpotRevenus:
     def __init__(self, revenu_annuel):
         # Définition des tranches et des taux
         tranches = [(0, 11295, 0), (11296, 29787, 0.11), (29788, 82342, 0.30), (82343, 177106, 0.41), (177107, float('inf'), 0.45)]
@@ -20,7 +47,7 @@ class calculer_IR:
         print(f"Pour un revenu annuel imposable de {revenu_annuel:.2f}€, l'impôt dû est de {impot_sur_le_revenu:.2f} €.")
 
         self.impot_sur_le_revenu = impot_sur_le_revenu
-class calcul_dividendes:
+class Dividendes:
     def __init__(self, societe_resultat_net_apres_IS, proportion_du_resultat_versee_en_dividende, type_societe, choix_fiscal, capital_social_societe):
         print("\n### calcul_dividendes \n-------------------------")
 
@@ -51,7 +78,7 @@ class calcul_dividendes:
         self.dividendes_recus_par_president_annuellement = dividendes_recus_par_president_annuellement
         self.reste_tresorerie = reste_tresorerie
         self.supplement_IR = supplement_IR
-class calcul_resultat_net:
+class ResultatNet:
     
     def __init__(self, chiffre_affaire_HT, charges_deductibles, type_societe, salaire_annuel_sansCS_avantIR, hyperopt=False):
         '''

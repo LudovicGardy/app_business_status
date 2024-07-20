@@ -6,7 +6,7 @@ import plotly.express as px
 from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
 from types import SimpleNamespace
 
-from ..calculs import calculer_IR, calcul_resultat_net, calcul_dividendes
+from ..calculs import Scenario
 from ..optimization import objective, run_optimization
 
 
@@ -14,7 +14,7 @@ class DisplayResults:
     def __init__(self, **kwargs):
         self.params = SimpleNamespace(**kwargs)
 
-    def text_results(self):
+    def text(self):
         st.write("### Resultats nets")
         st.divider()
         st.write(f"\+ chiffre affaire HT: :green[{self.params.chiffre_affaire_HT} €]")
@@ -42,7 +42,7 @@ class DisplayResults:
         st.write(f"Nota Bene 2: Total des charges sans la TVA: {self.params.taxes_total} €")
         st.divider()
 
-    def plot_results(self):
+    def plot(self):
         st.divider()
 
         labels = ['Salaire Net', 'Dividendes', 'Reste en trésorerie', 'Taxes', 'Charges déductibles']
@@ -146,37 +146,28 @@ class IncomeCalculator:
 
         if st.button('Afficher les résultats'):
 
-            self.resultat_net = calcul_resultat_net(
-                chiffre_affaire_HT, charges_deductibles, type_societe, salaire_annuel_sansCS_avantIR
-            )
-            self.resultat_dividendes = calcul_dividendes(
-                self.resultat_net.societe_resultat_net_apres_IS, proportion_du_resultat_versee_en_dividende, type_societe, choix_fiscal, capital_social_societe
-            )
-            president_imposable_total = self.resultat_net.salaire_annuel_sansCS_avantIR + self.resultat_dividendes.supplement_IR
-
-            self.resultat_IR = calculer_IR(president_imposable_total)
-            president_net_apres_IR = self.resultat_net.salaire_annuel_sansCS_avantIR + self.resultat_dividendes.dividendes_recus_par_president_annuellement - self.resultat_IR.impot_sur_le_revenu
-            taxes_total = self.resultat_net.charges_sociales_sur_salaire_president + self.resultat_net.impots_sur_les_societes + self.resultat_dividendes.charges_sur_dividendes + self.resultat_IR.impot_sur_le_revenu
+            params = {'charges_deductibles': charges_deductibles, 'type_societe': type_societe, 'choix_fiscal': choix_fiscal, 'salaire_annuel_avecCS_avantIR': salaire_annuel_sansCS_avantIR, 'proportion_dividende': proportion_du_resultat_versee_en_dividende}
+            scenario = Scenario(params)
 
             results = DisplayResults(chiffre_affaire_HT=chiffre_affaire_HT,
-                                     charges_deductibles=charges_deductibles,
-                                    benefice_apres_charges_deductibles=self.resultat_net.benefice_apres_charges_deductibles,
-                                    salaire_annuel_sansCS_avantIR=self.resultat_net.salaire_annuel_sansCS_avantIR,
-                                    CS_sur_salaire_annuel=self.resultat_net.charges_sociales_sur_salaire_president,
-                                    benefices_apres_salaire_president=self.resultat_net.benefices_apres_salaire_president,
-                                    impots_sur_les_societes=self.resultat_net.impots_sur_les_societes,
-                                    societe_resultat_net_apres_IS=self.resultat_net.societe_resultat_net_apres_IS,
-                                    charges_sur_dividendes=self.resultat_dividendes.charges_sur_dividendes,
-                                    dividendes_recus=self.resultat_dividendes.dividendes_recus_par_president_annuellement,
-                                    reste_tresorerie=self.resultat_dividendes.reste_tresorerie,
-                                    president_imposable_total=president_imposable_total,
-                                    impot_sur_le_revenu=self.resultat_IR.impot_sur_le_revenu,
-                                    president_net_apres_IR=president_net_apres_IR,
-                                    taxes_total=taxes_total,
-                                    supplement_IR=self.resultat_dividendes.supplement_IR)
+                                    charges_deductibles=charges_deductibles,
+                                    benefice_apres_charges_deductibles=scenario.resultat_net.benefice_apres_charges_deductibles,
+                                    salaire_annuel_sansCS_avantIR=scenario.resultat_net.salaire_annuel_sansCS_avantIR,
+                                    CS_sur_salaire_annuel=scenario.resultat_net.charges_sociales_sur_salaire_president,
+                                    benefices_apres_salaire_president=scenario.resultat_net.benefices_apres_salaire_president,
+                                    impots_sur_les_societes=scenario.resultat_net.impots_sur_les_societes,
+                                    societe_resultat_net_apres_IS=scenario.resultat_net.societe_resultat_net_apres_IS,
+                                    charges_sur_dividendes=scenario.resultat_dividendes.charges_sur_dividendes,
+                                    dividendes_recus=scenario.resultat_dividendes.dividendes_recus_par_president_annuellement,
+                                    reste_tresorerie=scenario.resultat_dividendes.reste_tresorerie,
+                                    president_imposable_total=scenario.president_imposable_total,
+                                    impot_sur_le_revenu=scenario.resultat_IR.impot_sur_le_revenu,
+                                    president_net_apres_IR=scenario.president_net_apres_IR,
+                                    taxes_total=scenario.taxes_total,
+                                    supplement_IR=scenario.resultat_dividendes.supplement_IR)
                         
-            results.plot_results()
-            results.text_results()
+            results.plot()
+            results.text()
 
 if __name__ == '__main__':
     calculator = IncomeCalculator()

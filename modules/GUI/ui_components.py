@@ -38,11 +38,6 @@ def init_session_state():
     if 'best_trial' not in st.session_state:
         st.session_state['best_trial'] = {}
 
-def update_session_state(**kwargs):
-    for key, value in kwargs.items():
-        st.session_state[key] = value
-
-
 def init_page_config(page_config): ### Must be called before any other st. function
     st.set_page_config(page_title=page_config().get('page_title'), 
                 page_icon = page_config().get('page_icon'),  

@@ -13,16 +13,21 @@ class App:
         with st.sidebar:
             display_sidebar(page_config)
 
-        tabs = st.tabs(["Optimiser le revenu"])#, "Voir les résultats"])
+        pg = st.navigation([
+            st.Page(self.page1, title="Accueil", icon="🏠"),
+            st.Page(self.page2, title="A propos", icon="ℹ️"),
+        ])
+        pg.run()
 
-        # Gestion des pages selon l'onglet sélectionné
+    def page1(self):
+        tabs = st.tabs(["Optimiser le revenu"])#, "Voir les résultats"])
         with tabs[0]:
             calc = IncomeCalculator()
-        # with tabs[1]:
-        #     st.title("Page 2")
-        #     st.write("Contenu de la Page 2 - Cette page pourrait inclure, par exemple, des calculatrices fiscales ou des analyses de responsabilité pour chaque structure juridique.")
 
+    def page2(self):
+        st.write("Not implemented tey")
 
+    
 if __name__ == '__main__':
     app = App()
 

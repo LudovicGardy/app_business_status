@@ -8,8 +8,6 @@ from types import SimpleNamespace
 
 from ..calculs import Scenario
 from ..optimization import objective, run_optimization
-from .ui_components import update_session_state
-
 
 class DisplayResults:
     def __init__(self, **kwargs):

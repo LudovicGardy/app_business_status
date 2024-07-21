@@ -32,7 +32,16 @@ def init_session_state():
     if 'proportion_du_resultat_versee_en_dividende' not in st.session_state:
         st.session_state['proportion_du_resultat_versee_en_dividende'] = 90
     if 'selected_tab' not in st.session_state:
-        st.session_state.selected_tab = 0
+        st.session_state['selected_tab'] = 0
+    if 'user_clicked' not in st.session_state:
+        st.session_state['user_clicked'] = False
+    if 'best_trial' not in st.session_state:
+        st.session_state['best_trial'] = {}
+
+def update_session_state(**kwargs):
+    for key, value in kwargs.items():
+        st.session_state[key] = value
+
 
 def init_page_config(page_config): ### Must be called before any other st. function
     st.set_page_config(page_title=page_config().get('page_title'), 

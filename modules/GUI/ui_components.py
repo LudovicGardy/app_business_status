@@ -11,11 +11,10 @@ def display_sidebar(page_config):
     with col1:
         st.image(logo_path, width=desired_width)
     with col2:
-        st.write(page_config().get('page_title'))
+        st.write(page_config().get('sidebar_title'))
 
     st.caption(page_config().get('page_description'))
-
-        # st.divider()
+    st.divider()
 
 def init_session_state():
     if 'type_societe' not in st.session_state:

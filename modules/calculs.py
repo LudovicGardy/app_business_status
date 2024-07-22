@@ -1,22 +1,45 @@
 from types import SimpleNamespace
+from typing import Any, Dict
+
 import streamlit as st
 
+
 class Scenario:
-    def __init__(self, params):
-            self.params = params#SimpleNamespace(**kwargs)
-            self.calculate_scenario()
+    def __init__(self, params: Dict[str, Any]):
+        self.params = params  # SimpleNamespace(**kwargs)
+        self.calculate_scenario()
 
     def calculate_scenario(self):
         resultat_net = ResultatNet(
-            st.session_state['chiffre_affaire_HT'], self.params['charges_deductibles'], self.params['type_societe'], self.params['salaire_annuel_avecCS_avantIR'], hyperopt=True
+            st.session_state["chiffre_affaire_HT"],
+            self.params["charges_deductibles"],
+            self.params["type_societe"],
+            self.params["salaire_annuel_avecCS_avantIR"],
+            hyperopt=True,
         )
         resultat_dividendes = Dividendes(
-            resultat_net.societe_resultat_net_apres_IS, self.params['proportion_dividende'], self.params['type_societe'], self.params['choix_fiscal'], st.session_state['capital_social_societe']
+            resultat_net.societe_resultat_net_apres_IS,
+            self.params["proportion_dividende"],
+            self.params["type_societe"],
+            self.params["choix_fiscal"],
+            st.session_state["capital_social_societe"],
         )
-        president_imposable_total = resultat_net.salaire_annuel_sansCS_avantIR + resultat_dividendes.supplement_IR
+        president_imposable_total = (
+            resultat_net.salaire_annuel_sansCS_avantIR
+            + resultat_dividendes.supplement_IR
+        )
         resultat_IR = ImpotRevenus(president_imposable_total)
-        president_net_apres_IR = resultat_net.salaire_annuel_sansCS_avantIR + resultat_dividendes.dividendes_recus_par_president_annuellement - resultat_IR.impot_sur_le_revenu
-        taxes_total = resultat_net.charges_sociales_sur_salaire_president + resultat_net.impots_sur_les_societes + resultat_dividendes.charges_sur_dividendes + resultat_IR.impot_sur_le_revenu
+        president_net_apres_IR = (
+            resultat_net.salaire_annuel_sansCS_avantIR
+            + resultat_dividendes.dividendes_recus_par_president_annuellement
+            - resultat_IR.impot_sur_le_revenu
+        )
+        taxes_total = (
+            resultat_net.charges_sociales_sur_salaire_president
+            + resultat_net.impots_sur_les_societes
+            + resultat_dividendes.charges_sur_dividendes
+            + resultat_IR.impot_sur_le_revenu
+        )
 
         self.resultat_net = resultat_net
         self.resultat_dividendes = resultat_dividendes
@@ -25,10 +48,17 @@ class Scenario:
         self.president_net_apres_IR = president_net_apres_IR
         self.taxes_total = taxes_total
 
+
 class ImpotRevenus:
-    def __init__(self, revenu_annuel):
+    def __init__(self, revenu_annuel: float):
         # Définition des tranches et des taux
-        tranches = [(0, 11295, 0), (11296, 29787, 0.11), (29788, 82342, 0.30), (82343, 177106, 0.41), (177107, float('inf'), 0.45)]
+        tranches = [
+            (0, 11295, 0),
+            (11296, 29787, 0.11),
+            (29788, 82342, 0.30),
+            (82343, 177106, 0.41),
+            (177107, float("inf"), 0.45),
+        ]
         impot_sur_le_revenu = 0
 
         # Calcul de l'impôt pour chaque tranche
@@ -44,47 +74,98 @@ class ImpotRevenus:
                     break
 
         print()
-        print(f"Pour un revenu annuel imposable de {revenu_annuel:.2f}€, l'impôt dû est de {impot_sur_le_revenu:.2f} €.")
+        print(
+            f"Pour un revenu annuel imposable de {revenu_annuel:.2f}€, l'impôt dû est de {impot_sur_le_revenu:.2f} €."
+        )
 
         self.impot_sur_le_revenu = impot_sur_le_revenu
+
+
 class Dividendes:
-    def __init__(self, societe_resultat_net_apres_IS, proportion_du_resultat_versee_en_dividende, type_societe, choix_fiscal, capital_social_societe):
+    def __init__(
+        self,
+        societe_resultat_net_apres_IS: float,
+        proportion_du_resultat_versee_en_dividende: float,
+        type_societe: str,
+        choix_fiscal: str,
+        capital_social_societe: float,
+    ):
         print("\n### calcul_dividendes \n-------------------------")
 
-        montant_verse_en_dividendes_au_president_annuellement = societe_resultat_net_apres_IS * proportion_du_resultat_versee_en_dividende
+        montant_verse_en_dividendes_au_president_annuellement = (
+            societe_resultat_net_apres_IS * proportion_du_resultat_versee_en_dividende
+        )
 
-        if type_societe == "EURL" and montant_verse_en_dividendes_au_president_annuellement > capital_social_societe * 0.1: 
-            montant_verse_en_dividendes_au_president_annuellement = capital_social_societe-1
+        if (
+            type_societe == "EURL"
+            and montant_verse_en_dividendes_au_president_annuellement
+            > capital_social_societe * 0.1
+        ):
+            montant_verse_en_dividendes_au_president_annuellement = (
+                capital_social_societe - 1
+            )
 
         if choix_fiscal == "flat_tax":
             taux_dividendes = 0.30
-            charges_sur_dividendes = round(montant_verse_en_dividendes_au_president_annuellement * taux_dividendes)
+            charges_sur_dividendes = round(
+                montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
+            )
             print(f"- charges_sur_dividendes: {charges_sur_dividendes}")
-            dividendes_recus_par_president_annuellement = round(montant_verse_en_dividendes_au_president_annuellement - charges_sur_dividendes)
-            print(f"- dividendes_recus_par_president_annuellement: {dividendes_recus_par_president_annuellement}")
-            reste_tresorerie = round(societe_resultat_net_apres_IS - montant_verse_en_dividendes_au_president_annuellement)
+            dividendes_recus_par_president_annuellement = round(
+                montant_verse_en_dividendes_au_president_annuellement
+                - charges_sur_dividendes
+            )
+            print(
+                f"- dividendes_recus_par_president_annuellement: {dividendes_recus_par_president_annuellement}"
+            )
+            reste_tresorerie = round(
+                societe_resultat_net_apres_IS
+                - montant_verse_en_dividendes_au_president_annuellement
+            )
             print(f"= reste_tresorerie: {reste_tresorerie} €")
             supplement_IR = 0
         elif choix_fiscal == "bareme":
             taux_dividendes = 0.17
-            charges_sur_dividendes = round(montant_verse_en_dividendes_au_president_annuellement * taux_dividendes)
-            dividendes_recus_par_president_annuellement = montant_verse_en_dividendes_au_president_annuellement - charges_sur_dividendes
-            reste_tresorerie = round(societe_resultat_net_apres_IS - montant_verse_en_dividendes_au_president_annuellement)
+            charges_sur_dividendes = round(
+                montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
+            )
+            dividendes_recus_par_president_annuellement = (
+                montant_verse_en_dividendes_au_president_annuellement
+                - charges_sur_dividendes
+            )
+            reste_tresorerie = round(
+                societe_resultat_net_apres_IS
+                - montant_verse_en_dividendes_au_president_annuellement
+            )
             print(f"= reste_tresorerie: {reste_tresorerie} €")
             dividendes_abbatement_IR = 0.4
-            supplement_IR = round(dividendes_recus_par_president_annuellement * (1 - dividendes_abbatement_IR),2)
+            supplement_IR = round(
+                dividendes_recus_par_president_annuellement
+                * (1 - dividendes_abbatement_IR),
+                2,
+            )
 
         self.charges_sur_dividendes = charges_sur_dividendes
-        self.dividendes_recus_par_president_annuellement = dividendes_recus_par_president_annuellement
+        self.dividendes_recus_par_president_annuellement = (
+            dividendes_recus_par_president_annuellement
+        )
         self.reste_tresorerie = reste_tresorerie
         self.supplement_IR = supplement_IR
+
+
 class ResultatNet:
-    
-    def __init__(self, chiffre_affaire_HT, charges_deductibles, type_societe, salaire_annuel_sansCS_avantIR, hyperopt=False):
-        '''
-        CS = charges sociales. 
+    def __init__(
+        self,
+        chiffre_affaire_HT: float,
+        charges_deductibles: float,
+        type_societe: str,
+        salaire_annuel_sansCS_avantIR: float,
+        hyperopt=False,
+    ):
+        """
+        CS = charges sociales.
         salaire_annuel_sansCS_avantIR: par exemple 30000€ de celui-ci coûteront 54000€ (salaire + charges sociales) à l'entreprise en SASU.
-        '''
+        """
 
         ### [NOTE] On doit réaliser cette opération car le salaire optimisé peut varier de 0
         ### Jusqu'à [C.A.h.t. - charges_déductibles]. Or en réalité le salaire à optimiser
@@ -99,8 +180,8 @@ class ResultatNet:
         ### Pour ce même exemple, on aura (30000€ * 0.8) = 24000€.
         if hyperopt:
             if type_societe == "EURL":
-                salaire_annuel_sansCS_avantIR *= 0.310 
-            if type_societe == "SASU": 
+                salaire_annuel_sansCS_avantIR *= 0.310
+            if type_societe == "SASU":
                 salaire_annuel_sansCS_avantIR *= 0.444
 
         print()
@@ -110,24 +191,38 @@ class ResultatNet:
         print(f"+ marge_globale: {chiffre_affaire_HT}")
         print(f"- charges_deductibles: {charges_deductibles}")
         benefice_apres_charges_deductibles = chiffre_affaire_HT - charges_deductibles
-        print(f"= benefice_apres_charges_deductibles: {benefice_apres_charges_deductibles} €")
+        print(
+            f"= benefice_apres_charges_deductibles: {benefice_apres_charges_deductibles} €"
+        )
         print()
 
         ###-----------------------------------------------------------------
         ### Calcul des charges sociales sur le salaire du président
-        taux_charges_sociales_EURL = 0.45 #0.689655
-        taux_charges_sociales_SASU = 0.80 #0.555555
+        taux_charges_sociales_EURL = 0.45  # 0.689655
+        taux_charges_sociales_SASU = 0.80  # 0.555555
 
         print(f"- salaire_recu_par_le_president: {salaire_annuel_sansCS_avantIR}")
 
         if type_societe == "EURL":
-            charges_sociales_sur_salaire_president = round(taux_charges_sociales_EURL * salaire_annuel_sansCS_avantIR)
+            charges_sociales_sur_salaire_president = round(
+                taux_charges_sociales_EURL * salaire_annuel_sansCS_avantIR
+            )
         if type_societe == "SASU":
-            charges_sociales_sur_salaire_president = round(taux_charges_sociales_SASU * salaire_annuel_sansCS_avantIR)
-        print(f"- charges_sur_salaire_president: {charges_sociales_sur_salaire_president}")
+            charges_sociales_sur_salaire_president = round(
+                taux_charges_sociales_SASU * salaire_annuel_sansCS_avantIR
+            )
+        print(
+            f"- charges_sur_salaire_president: {charges_sociales_sur_salaire_president}"
+        )
 
-        benefices_apres_salaire_president = benefice_apres_charges_deductibles - salaire_annuel_sansCS_avantIR - charges_sociales_sur_salaire_president
-        print(f"= benefices_apres_salaire_president: {benefices_apres_salaire_president} €")
+        benefices_apres_salaire_president = (
+            benefice_apres_charges_deductibles
+            - salaire_annuel_sansCS_avantIR
+            - charges_sociales_sur_salaire_president
+        )
+        print(
+            f"= benefices_apres_salaire_president: {benefices_apres_salaire_president} €"
+        )
         print()
 
         ###-----------------------------------------------------------------
@@ -136,19 +231,25 @@ class ResultatNet:
         if benefices_apres_salaire_president <= seuil:
             impots_sur_les_societes = round(benefices_apres_salaire_president * 0.15)
         else:
-            impots_sur_les_societes = round(seuil * 0.15 + (benefices_apres_salaire_president - seuil) * 0.25)
+            impots_sur_les_societes = round(
+                seuil * 0.15 + (benefices_apres_salaire_president - seuil) * 0.25
+            )
         print(f"- impots_sur_les_societes: {impots_sur_les_societes}")
 
         ###-----------------------------------------------------------------
         # Calcul du resultat net apres impot
-        societe_resultat_net_apres_IS = round(benefices_apres_salaire_president - impots_sur_les_societes)
-        print(f"= societe_resultat_net_apres_IS: {societe_resultat_net_apres_IS} €") # disponible pour dividendes
-
-        salaire_annuel_sansCS_avantIR#salaire_annuel_recu_par_le_president
+        societe_resultat_net_apres_IS = round(
+            benefices_apres_salaire_president - impots_sur_les_societes
+        )
+        print(
+            f"= societe_resultat_net_apres_IS: {societe_resultat_net_apres_IS} €"
+        )  # disponible pour dividendes
 
         self.benefice_apres_charges_deductibles = benefice_apres_charges_deductibles
         self.societe_resultat_net_apres_IS = societe_resultat_net_apres_IS
         self.salaire_annuel_sansCS_avantIR = salaire_annuel_sansCS_avantIR
-        self.charges_sociales_sur_salaire_president = charges_sociales_sur_salaire_president
+        self.charges_sociales_sur_salaire_president = (
+            charges_sociales_sur_salaire_president
+        )
         self.benefices_apres_salaire_president = benefices_apres_salaire_president
         self.impots_sur_les_societes = impots_sur_les_societes

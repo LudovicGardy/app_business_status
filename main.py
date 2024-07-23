@@ -1,7 +1,8 @@
 import streamlit as st
 
 from modules.config import page_config
-from modules.GUI.home import IncomeCalculator
+from modules.GUI.about import About
+from modules.GUI.home import Home
 from modules.GUI.ui_components import (
     display_sidebar,
     init_page_config,
@@ -19,19 +20,17 @@ class App:
 
         pg = st.navigation(
             [
-                st.Page(self.page1, title="Accueil", icon="🏠"),
-                st.Page(self.page2, title="A propos", icon="ℹ️"),
+                st.Page(self.page_home, title="Accueil", icon="🏠"),
+                st.Page(self.page_about, title="A propos", icon="ℹ️"),
             ]
         )
         pg.run()
 
-    def page1(self):
-        tabs = st.tabs(["Simulation de revenus"])
-        with tabs[0]:
-            calc = IncomeCalculator()
+    def page_home(self):
+        Home()
 
-    def page2(self):
-        st.write("Not implemented tey")
+    def page_about(self):
+        About()
 
 
 if __name__ == "__main__":

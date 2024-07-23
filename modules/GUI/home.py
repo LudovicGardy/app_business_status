@@ -163,7 +163,7 @@ class OptimizeIncome:
             st.rerun()
 
 
-class IncomeCalculator:
+class Home:
     def __init__(self):
         self.status_possibles = ["SASU", "EURL"]
         self.fiscalites_possibles = ["flat_tax", "bareme"]
@@ -364,4 +364,4 @@ class IncomeCalculator:
 
 
 if __name__ == "__main__":
-    calculator = IncomeCalculator()
+    calculator = Home()

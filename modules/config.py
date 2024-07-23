@@ -44,8 +44,8 @@ def page_config():
     toml_config = load_toml_config(".streamlit/config.toml")
 
     page_dict = {
-        "page_title": toml_config.get("page_title", "Mon Statut"),
-        "sidebar_title": f"# {toml_config.get('sidebar_title', 'Mon Statut')}",
+        "page_title": toml_config.get("page_title", "Business Status"),
+        "sidebar_title": f"# {toml_config.get('sidebar_title', 'Business Status')}",
         "base": toml_config.get("base", "dark"),
         "page_icon": f'{env_variables.get("AWS_S3_URL", "")}/Sotis_AI_pure_darkbg_240px.ico',
         "page_logo": f'{env_variables.get("AWS_S3_URL", "")}/Sotis_AI_pure_darkbg_240px.png',

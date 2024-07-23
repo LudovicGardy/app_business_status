@@ -53,20 +53,23 @@ class DisplayResults:
         st.divider()
         st.write("### Resultats pour le president")
         st.write(
-            f"- Revenu annuel imposable: {self.params.president_imposable_total} € \n  - Salaire: {self.params.salaire_annuel_sansCS_avantIR} € (imposable: {self.params.salaire_annuel_sansCS_avantIR} €) \n  - Dividendes: {self.params.dividendes_recus} € (imposable: {self.params.supplement_IR} €)"
+            f"- Revenu imposable annuel: {self.params.president_imposable_total} € \n  - Salaire: {self.params.salaire_annuel_sansCS_avantIR} € (imposable: {self.params.salaire_annuel_sansCS_avantIR} €) \n  - Dividendes: {self.params.dividendes_recus} € (imposable: {self.params.supplement_IR} €)"
         )
         st.write(
-            f"Pour un revenu annuel de {self.params.president_imposable_total:.2f} €, l'impot dû est de {self.params.impot_sur_le_revenu:.2f} €."
+            f"Pour un revenu imposable annuel de {self.params.president_imposable_total:.2f} €, l'impot dû est de {self.params.impot_sur_le_revenu:.2f} €"
         )
         st.write(
-            f"Après import sur le revenu, le président gagne {self.params.president_net_apres_IR:.2f} €."
+            f"Après import sur le revenu, le président gagne {self.params.president_net_apres_IR:.2f} €"
         )
         st.divider()
         st.write(
-            f"Nota Bene 1: TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * 0.2} €"
+            f"ℹ️ Total des charges sur le chiffre d'affaires H.T. sans la TVA: {self.params.taxes_total} €"
         )
         st.write(
-            f"Nota Bene 2: Total des charges sans la TVA: {self.params.taxes_total} €"
+            f"ℹ️ TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * 0.2} €"
+        )
+        st.write(
+            f"ℹ️ Total facturé approximatif (TTC): {self.params.chiffre_affaire_HT * 1.2} €"
         )
         st.divider()
 

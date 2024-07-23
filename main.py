@@ -26,7 +26,7 @@ class App:
         pg.run()
 
     def page1(self):
-        tabs = st.tabs(["Optimiser le revenu"])  # , "Voir les résultats"])
+        tabs = st.tabs(["Simulation de revenus"])
         with tabs[0]:
             calc = IncomeCalculator()
 

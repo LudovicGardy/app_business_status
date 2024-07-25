@@ -10,7 +10,7 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
 
 👉 Access the app and start your analysis now at [coming soon].
 
-![Image1](images/image1.png)
+![Image1](images/image1.0.png)
 
 ## Prerequisites
 - Anaconda or Miniconda

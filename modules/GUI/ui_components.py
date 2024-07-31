@@ -23,16 +23,6 @@ def init_session_state():
         st.session_state["type_societe"] = 0
     if "choix_fiscal" not in st.session_state:
         st.session_state["choix_fiscal"] = 0
-    if "capital_social_societe" not in st.session_state:
-        st.session_state["capital_social_societe"] = 1000
-    if "chiffre_affaire_HT" not in st.session_state:
-        st.session_state["chiffre_affaire_HT"] = 200000
-    if "charges_deductibles" not in st.session_state:
-        st.session_state["charges_deductibles"] = 32000
-    if "salaire_annuel_sansCS_avantIR" not in st.session_state:
-        st.session_state["salaire_annuel_sansCS_avantIR"] = 10000
-    if "proportion_du_resultat_versee_en_dividende" not in st.session_state:
-        st.session_state["proportion_du_resultat_versee_en_dividende"] = 90
     if "selected_tab" not in st.session_state:
         st.session_state["selected_tab"] = 0
     if "user_clicked" not in st.session_state:

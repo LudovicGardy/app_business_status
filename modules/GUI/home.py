@@ -174,13 +174,108 @@ class Home:
 
         ###-----------------------------------------------------------------------
         ### OPTIMISATION
+
         ##- Resultats societe
-        salaire_avecCS_maximum = (
+        st.divider()
+        st.write("### Résultats annuels de la société")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            self.chiffre_affaire_HT = st.number_input(
+                "Chiffre d'affaires HT (€)",
+                min_value=0,
+                value=200000,
+                step=1000,
+            )
+            st.session_state["chiffre_affaire_HT"] = self.chiffre_affaire_HT
+        with col2:
+            self.charges_deductibles = st.number_input(
+                "Charges déductibles (€)",
+                min_value=0,
+                value=32000,
+                step=1000,
+            )
+            st.session_state["charges_deductibles"] = self.charges_deductibles
+
+        ##- Resultats societe
+        salaire_avec_CS_maximum = (
             st.session_state["chiffre_affaire_HT"]
             - st.session_state["charges_deductibles"]
         )
         salaire_avec_CS_minimum = 0
 
+        with st.expander(
+            "Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
+        ):
+            ##-----------------------------------------------------------------------
+            ## ANALYSE UNITAIRE
+            ##- Paramètres legaux et fiscaux
+            st.write("### Paramètres legaux et fiscaux")
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                self.type_societe = st.selectbox(
+                    "Type de société",
+                    self.status_possibles,
+                    index=st.session_state["type_societe"],
+                )
+            with col2:
+                self.choix_fiscal = st.selectbox(
+                    "Régime fiscal des dividendes",
+                    self.fiscalites_possibles,
+                    index=st.session_state["choix_fiscal"],
+                )
+            with col3:
+                self.capital_social_societe = st.number_input(
+                    "Capital social de la société (€)",
+                    min_value=0,
+                    value=1000,
+                    step=1000,
+                )
+                st.session_state["capital_social_societe"] = self.capital_social_societe
+
+            ##- Salaire president et Dividendes
+            # st.divider()
+            st.write("### Salaire du président et Dividendes")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                self.salaire_annuel_sansCS_avantIR = st.number_input(
+                    "Salaire annuel du président (€)",
+                    min_value=0,
+                    value=10000,
+                    step=1000,
+                )
+                st.session_state["salaire_annuel_sansCS_avantIR"] = (
+                    self.salaire_annuel_sansCS_avantIR
+                )
+
+            with col2:
+                self.proportion_du_resultat_versee_en_dividende = (
+                    st.slider(
+                        "Proportion du résultat après IS versée en dividendes (%)",
+                        min_value=0,
+                        max_value=100,
+                        value=90,
+                    )
+                    / 100.0
+                )
+                st.session_state["proportion_du_resultat_versee_en_dividende"] = (
+                    self.proportion_du_resultat_versee_en_dividende
+                )
+
+        self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
+
+        st.divider()
+
+        if st.button("Afficher les résultats"):
+            st.session_state["user_clicked"] = True
+
+        if st.session_state["user_clicked"]:
+            self.display_results()
+
+    def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
         # Définition de l'espace de recherche
         space = {
             "type_societe": hp.choice("type_societe", self.status_possibles),
@@ -188,7 +283,7 @@ class Home:
             "salaire_annuel_avecCS_avantIR": hp.quniform(
                 "salaire_annuel_avecCS_avantIR",
                 salaire_avec_CS_minimum,
-                salaire_avecCS_maximum,
+                salaire_avec_CS_maximum,
                 100,
             ),
             "proportion_dividende": hp.quniform(
@@ -202,26 +297,6 @@ class Home:
                 1,
             ),  # This parameter should not be optimized
         }
-
-        ##- Resultats societe
-        st.divider()
-        st.write("### Résultats annuels de la société")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            self.chiffre_affaire_HT = st.number_input(
-                "Chiffre d'affaires HT (€)",
-                min_value=0,
-                value=st.session_state["chiffre_affaire_HT"],
-                step=1000,
-            )
-        with col2:
-            self.charges_deductibles = st.number_input(
-                "Charges déductibles (€)",
-                min_value=0,
-                value=st.session_state["charges_deductibles"],
-                step=1000,
-            )
 
         with st.sidebar:
             if st.button("Optimiser le revenu du président"):
@@ -266,69 +341,6 @@ class Home:
                     icon="✅",
                 )
             st.divider()
-
-        with st.expander(
-            "Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
-        ):
-            ##-----------------------------------------------------------------------
-            ## ANALYSE UNITAIRE
-            ##- Paramètres legaux et fiscaux
-            st.write("### Paramètres legaux et fiscaux")
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                self.type_societe = st.selectbox(
-                    "Type de société",
-                    self.status_possibles,
-                    index=st.session_state["type_societe"],
-                )
-            with col2:
-                self.choix_fiscal = st.selectbox(
-                    "Régime fiscal des dividendes",
-                    self.fiscalites_possibles,
-                    index=st.session_state["choix_fiscal"],
-                )
-            with col3:
-                self.capital_social_societe = st.number_input(
-                    "Capital social de la société (€)",
-                    min_value=0,
-                    value=st.session_state["capital_social_societe"],
-                    step=1000,
-                )
-
-            ##- Salaire president et Dividendes
-            # st.divider()
-            st.write("### Salaire du président et Dividendes")
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                self.salaire_annuel_sansCS_avantIR = st.number_input(
-                    "Salaire annuel du président (€)",
-                    min_value=0,
-                    value=st.session_state["salaire_annuel_sansCS_avantIR"],
-                    step=1000,
-                )
-            with col2:
-                self.proportion_du_resultat_versee_en_dividende = (
-                    st.slider(
-                        "Proportion du résultat après IS versée en dividendes (%)",
-                        min_value=0,
-                        max_value=100,
-                        value=st.session_state[
-                            "proportion_du_resultat_versee_en_dividende"
-                        ],
-                    )
-                    / 100.0
-                )
-
-        st.divider()
-
-        if st.button("Afficher les résultats"):
-            st.session_state["user_clicked"] = True
-
-        if st.session_state["user_clicked"]:
-            self.display_results()
 
     def display_results(self):
         params = {

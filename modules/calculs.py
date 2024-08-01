@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from typing import Any, Dict
 
 import streamlit as st
+import yaml
 
 
 class Scenario:
@@ -51,18 +52,14 @@ class Scenario:
 
 class ImpotRevenus:
     def __init__(self, revenu_annuel: float):
-        # Définition des tranches et des taux
-        tranches = [
-            (0, 11295, 0),
-            (11296, 29787, 0.11),
-            (29788, 82342, 0.30),
-            (82343, 177106, 0.41),
-            (177107, float("inf"), 0.45),
-        ]
+        with open("config/taxes.yaml", "r") as file:
+            config_yaml = yaml.safe_load(file)
+
         impot_sur_le_revenu = 0
 
         # Calcul de l'impôt pour chaque tranche
-        for min_tranche, max_tranche, taux in tranches:
+        for min_tranche, max_tranche, taux_pcent in config_yaml["tranches_IR"]:
+            taux = taux_pcent / 100
             if revenu_annuel > min_tranche:
                 # Calcul de la part du revenu dans la tranche actuelle
                 revenu_dans_tranche = min(revenu_annuel, max_tranche) - min_tranche
@@ -90,6 +87,9 @@ class Dividendes:
         choix_fiscal: str,
         capital_social_societe: float,
     ):
+        with open("config/taxes.yaml", "r") as file:
+            self.config_yaml = yaml.safe_load(file)
+
         print("\n### calcul_dividendes \n-------------------------")
 
         montant_verse_en_dividendes_au_president_annuellement = (
@@ -106,7 +106,10 @@ class Dividendes:
             )
 
         if choix_fiscal == "flat_tax":
-            taux_dividendes = 0.30
+            taux_dividendes = (
+                self.config_yaml["dividendes"]["flat_tax"]["TMI"][0]
+                + self.config_yaml["dividendes"]["flat_tax"]["CSG"][0]
+            ) / 100
             charges_sur_dividendes = round(
                 montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
             )
@@ -125,7 +128,7 @@ class Dividendes:
             print(f"= reste_tresorerie: {reste_tresorerie} €")
             supplement_IR = 0
         elif choix_fiscal == "bareme":
-            taux_dividendes = 0.17
+            taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["TMI"][0] / 100
             charges_sur_dividendes = round(
                 montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
             )
@@ -138,7 +141,9 @@ class Dividendes:
                 - montant_verse_en_dividendes_au_president_annuellement
             )
             print(f"= reste_tresorerie: {reste_tresorerie} €")
-            dividendes_abbatement_IR = 0.4
+            dividendes_abbatement_IR = (
+                self.config_yaml["dividendes"]["flat_tax"]["abattement"][0] / 100
+            )
             supplement_IR = round(
                 dividendes_recus_par_president_annuellement
                 * (1 - dividendes_abbatement_IR),
@@ -162,13 +167,16 @@ class ResultatNet:
         salaire_annuel_sansCS_avantIR: float,
         hyperopt=False,
     ):
+        with open("config/taxes.yaml", "r") as file:
+            self.config_yaml = yaml.safe_load(file)
+
         """
         CS = charges sociales.
         salaire_annuel_sansCS_avantIR: par exemple 30000€ de celui-ci coûteront 54000€ (salaire + charges sociales) à l'entreprise en SASU.
         """
 
         ### [NOTE] On doit réaliser cette opération car le salaire optimisé peut varier de 0
-        ### Jusqu'à [C.A.h.t. - charges_déductibles]. Or en réalité le salaire à optimiser
+        ### jusqu'à [C.A.h.t. - charges_déductibles]. Or en réalité le salaire à optimiser
         ### devrait être un pourcentage de [C.A.h.t. - charges_déductibles - charges_sociales_sur_salaire_president],
         ### et comme les charges sociales sur le salaire du président varient en fonction du type de société,
         ### et que le type de société est une variable d'entrée de la fonction objective, on doit recalculer le salaire
@@ -227,12 +235,19 @@ class ResultatNet:
 
         ###-----------------------------------------------------------------
         ### Calcul de l'impot sur les sociétés
-        seuil = 38120
+        seuil = self.config_yaml["societe"]["SASU"]["tranches_IS"][-1][0]
         if benefices_apres_salaire_president <= seuil:
-            impots_sur_les_societes = round(benefices_apres_salaire_president * 0.15)
+            impots_sur_les_societes = round(
+                benefices_apres_salaire_president
+                * self.config_yaml["societe"]["SASU"]["tranches_IS"][0][-1]
+                / 100
+            )
         else:
             impots_sur_les_societes = round(
-                seuil * 0.15 + (benefices_apres_salaire_president - seuil) * 0.25
+                seuil * self.config_yaml["societe"]["SASU"]["tranches_IS"][0][-1] / 100
+                + (benefices_apres_salaire_president - seuil)
+                * self.config_yaml["societe"]["SASU"]["tranches_IS"][1][-1]
+                / 100
             )
         print(f"- impots_sur_les_societes: {impots_sur_les_societes}")
 

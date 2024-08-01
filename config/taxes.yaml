@@ -1,0 +1,23 @@
+tranches_IR:
+  - [0, 11295, 0]
+  - [11296, 29787, 11]
+  - [29788, 82342, 30]
+  - [82343, 177106, 41]
+  - [177107, inf, 45]
+
+dividendes:
+  flat_tax:
+    TMI:
+      - 17.2
+    CSG:
+      - 12.8
+    abattement:
+      - 40
+
+societe:
+  EURL:
+
+  SASU:
+    tranches_IS:
+      - [0, 38120, 15]
+      - [38120, inf, 25]

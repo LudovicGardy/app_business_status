@@ -188,9 +188,19 @@ class ResultatNet:
         ### Pour ce même exemple, on aura (30000€ * 0.8) = 24000€.
         if hyperopt:
             if type_societe == "EURL":
-                salaire_annuel_sansCS_avantIR *= 0.310
+                salaire_annuel_sansCS_avantIR *= (
+                    self.config_yaml["societe"]["EURL"]["charges_sociales"][
+                        "taux_inverse_approximatif"
+                    ][0]
+                    / 100
+                )
             if type_societe == "SASU":
-                salaire_annuel_sansCS_avantIR *= 0.444
+                salaire_annuel_sansCS_avantIR *= (
+                    self.config_yaml["societe"]["SASU"]["charges_sociales"][
+                        "taux_inverse_approximatif"
+                    ][0]
+                    / 100
+                )
 
         print()
         print("### calcul_resultat_net \n-------------------------")
@@ -206,8 +216,12 @@ class ResultatNet:
 
         ###-----------------------------------------------------------------
         ### Calcul des charges sociales sur le salaire du président
-        taux_charges_sociales_EURL = 0.45  # 0.689655
-        taux_charges_sociales_SASU = 0.80  # 0.555555
+        taux_charges_sociales_EURL = (
+            self.config_yaml["societe"]["EURL"]["charges_sociales"]["taux"][0] / 100
+        )
+        taux_charges_sociales_SASU = (
+            self.config_yaml["societe"]["SASU"]["charges_sociales"]["taux"][0] / 100
+        )
 
         print(f"- salaire_recu_par_le_president: {salaire_annuel_sansCS_avantIR}")
 

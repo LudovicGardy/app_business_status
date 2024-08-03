@@ -6,6 +6,7 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import plotly.express as px
 import streamlit as st
+import yaml
 from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 
 from ..calculs import Scenario
@@ -15,6 +16,8 @@ from ..optimization import objective, run_optimization
 class DisplayResults:
     def __init__(self, **kwargs):
         self.params = SimpleNamespace(**kwargs)
+        with open("config/taxes.yaml", "r") as file:
+            self.config_yaml = yaml.safe_load(file)
 
     def text(self):
         st.write("### Resultats nets")
@@ -66,10 +69,10 @@ class DisplayResults:
             f"ℹ️ Total des charges sur le chiffre d'affaires H.T. sans la TVA: {self.params.taxes_total} €"
         )
         st.write(
-            f"ℹ️ TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * 0.2} €"
+            f"ℹ️ TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * self.config_yaml['TVA']['taux_normal']/100} €"
         )
         st.write(
-            f"ℹ️ Total facturé approximatif (TTC): {self.params.chiffre_affaire_HT * 1.2} €"
+            f"ℹ️ Total facturé approximatif (TTC): {self.params.chiffre_affaire_HT * (100+self.config_yaml['TVA']['taux_normal']/100)} €"
         )
         st.divider()
 

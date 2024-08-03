@@ -5,28 +5,26 @@ tranches_IR:
   - [82343, 177106, 41]  # min (€), max (€), taux (%)
   - [177107, inf, 45]  # min (€), max (€), taux (%)
 
+TVA:
+  taux_normal: 20  # (%)
+  taux_reduit: 5.5  # (%)
+  taux_intermediaire: 10  # (%)
+
 dividendes:
   flat_tax:
-    TMI:  # Taux Marginal d'Imposition (non-cumulatif avec IR)
-      - 17.2  # %
-    CSG:
-      - 12.8  # %
-    abattement:
-      - 40  # %
+    TMI: 17.2  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
+    CSG: 12.8  # (%)
+    abattement: 40  # (%)
 
 societe:
   EURL:
     charges_sociales:
-      taux:  # %
-        - 45 # pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.45 = 43500€
-      taux_inverse_approximatif:  # %
-        - 31 # si l'entreprise verse 43500€, le salarié touchera 43500 - 43500 * 0.31 = 30015€
+      taux: 45  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.45 = 43500€
+      taux_inverse_approximatif: 31  # (%) si l'entreprise verse 43500€, le salarié touchera 43500 - 43500 * 0.31 = 30015€
   SASU:
     charges_sociales:
-      taux:  # %
-        - 85 # pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.85 = 55500€
-      taux_inverse_approximatif:  # %
-        - 46 # si l'entreprise verse 55500€, le salarié touchera 55500 - 55500 * 0.46 = 29970€
+      taux: 85  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.85 = 55500€
+      taux_inverse_approximatif: 46  # (%) si l'entreprise verse 55500€, le salarié touchera 55500 - 55500 * 0.46 = 29970€
     tranches_IS:
       - [0, 38120, 15]  # min (€), max (€), taux (%)
       - [38120, inf, 25]  # min (€), max (€), taux (%)

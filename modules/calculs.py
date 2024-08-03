@@ -107,8 +107,8 @@ class Dividendes:
 
         if choix_fiscal == "flat_tax":
             taux_dividendes = (
-                self.config_yaml["dividendes"]["flat_tax"]["TMI"][0]
-                + self.config_yaml["dividendes"]["flat_tax"]["CSG"][0]
+                self.config_yaml["dividendes"]["flat_tax"]["TMI"]
+                + self.config_yaml["dividendes"]["flat_tax"]["CSG"]
             ) / 100
             charges_sur_dividendes = round(
                 montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
@@ -128,7 +128,7 @@ class Dividendes:
             print(f"= reste_tresorerie: {reste_tresorerie} €")
             supplement_IR = 0
         elif choix_fiscal == "bareme":
-            taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["TMI"][0] / 100
+            taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["TMI"] / 100
             charges_sur_dividendes = round(
                 montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
             )
@@ -142,7 +142,7 @@ class Dividendes:
             )
             print(f"= reste_tresorerie: {reste_tresorerie} €")
             dividendes_abbatement_IR = (
-                self.config_yaml["dividendes"]["flat_tax"]["abattement"][0] / 100
+                self.config_yaml["dividendes"]["flat_tax"]["abattement"] / 100
             )
             supplement_IR = round(
                 dividendes_recus_par_president_annuellement
@@ -191,14 +191,14 @@ class ResultatNet:
                 salaire_annuel_sansCS_avantIR *= (
                     self.config_yaml["societe"]["EURL"]["charges_sociales"][
                         "taux_inverse_approximatif"
-                    ][0]
+                    ]
                     / 100
                 )
             if type_societe == "SASU":
                 salaire_annuel_sansCS_avantIR *= (
                     self.config_yaml["societe"]["SASU"]["charges_sociales"][
                         "taux_inverse_approximatif"
-                    ][0]
+                    ]
                     / 100
                 )
 
@@ -217,10 +217,10 @@ class ResultatNet:
         ###-----------------------------------------------------------------
         ### Calcul des charges sociales sur le salaire du président
         taux_charges_sociales_EURL = (
-            self.config_yaml["societe"]["EURL"]["charges_sociales"]["taux"][0] / 100
+            self.config_yaml["societe"]["EURL"]["charges_sociales"]["taux"] / 100
         )
         taux_charges_sociales_SASU = (
-            self.config_yaml["societe"]["SASU"]["charges_sociales"]["taux"][0] / 100
+            self.config_yaml["societe"]["SASU"]["charges_sociales"]["taux"] / 100
         )
 
         print(f"- salaire_recu_par_le_president: {salaire_annuel_sansCS_avantIR}")

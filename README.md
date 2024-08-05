@@ -8,7 +8,7 @@
 
 Here's a tool that allows you to analyze and optimize your financial decisions based on various parameters like annual turnover, deductible expenses, and dividend distribution. It's ideal for entrepreneurs and business owners who need to make informed decisions about their company's legal structure.
 
-👉 Access the app and start your analysis now at [coming soon].
+🌐 Access the app and start your analysis now at [https://business-status.app](https://business-status-583ac98f38cb.herokuapp.com/).
 
 ![Image1](images/image1.0.png)
 

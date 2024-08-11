@@ -72,7 +72,7 @@ class DisplayResults:
             f"ℹ️ TVA facturée approximativement (non comptée dans les calculs): {self.params.chiffre_affaire_HT * self.config_yaml['TVA']['taux_normal']/100} €"
         )
         st.write(
-            f"ℹ️ Total facturé approximatif (TTC): {self.params.chiffre_affaire_HT * (100+self.config_yaml['TVA']['taux_normal']/100)} €"
+            f"ℹ️ Total facturé approximatif (TTC): {self.params.chiffre_affaire_HT + self.params.chiffre_affaire_HT * (self.config_yaml['TVA']['taux_normal']/100)} €"
         )
         st.divider()
 
@@ -270,13 +270,16 @@ class Home:
 
         self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
 
-        st.divider()
+        # st.divider()
 
-        if st.button("Afficher les résultats"):
-            st.session_state["user_clicked"] = True
+        # if st.button("Afficher les résultats"):
+        #     st.session_state["user_clicked"] = True
 
-        if st.session_state["user_clicked"]:
+        # if st.session_state["user_clicked"]:
+        with st.expander("Afficher les résultats"):
             self.display_results()
+
+        st.write(f"Reste tresorerie: :blue[{self.results.params.reste_tresorerie} €]")
 
     def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
         # Définition de l'espace de recherche
@@ -355,7 +358,7 @@ class Home:
         }
         scenario = Scenario(params)
 
-        results = DisplayResults(
+        self.results = DisplayResults(
             chiffre_affaire_HT=self.chiffre_affaire_HT,
             charges_deductibles=self.charges_deductibles,
             benefice_apres_charges_deductibles=scenario.resultat_net.benefice_apres_charges_deductibles,
@@ -374,8 +377,8 @@ class Home:
             supplement_IR=scenario.resultat_dividendes.supplement_IR,
         )
 
-        results.plot()
-        results.text()
+        self.results.plot()
+        self.results.text()
 
 
 if __name__ == "__main__":

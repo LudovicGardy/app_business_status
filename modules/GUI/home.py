@@ -118,28 +118,25 @@ class OptimizeIncome:
     def __init__(self, space: dict[str, hp.choice], objective: Callable):
         with st.spinner("Optimisation en cours..."):
             best_params, trials = run_optimization(space, objective)
+            print("best_params:", best_params)
 
             best_params["salaire_annuel_sansCS_avantIR"] = trials.best_trial["result"][
                 "write_results_dict"
             ]["salaire_annuel_sansCS_avantIR"]  # int(best_params['salaire_annuel'])
 
-            ### Print best params in a loop
-            for key in best_params:
-                st.write(f"  . {key}: {best_params[key]}")
-
-            ### Set new values and refresh
-            st.session_state["type_societe"] = int(best_params["type_societe"])
-            st.session_state["choix_fiscal"] = int(best_params["choix_fiscal"])
-            st.session_state["salaire_annuel_sansCS_avantIR"] = int(
-                best_params["salaire_annuel_sansCS_avantIR"]
-            )
-            st.session_state["proportion_du_resultat_versee_en_dividende"] = int(
-                best_params["proportion_dividende"] * 100
-            )
-            st.session_state["charges_deductibles"] = int(
-                best_params["charges_deductibles"]
-            )
-            print("best_params:", best_params)
+            ### This does not work because of the way streamlit apply priority to the widgets values
+            # ### Set new values and refresh
+            # st.session_state["type_societe"] = int(best_params["type_societe"])
+            # st.session_state["choix_fiscal"] = int(best_params["choix_fiscal"])
+            # st.session_state["salaire_annuel_sansCS_avantIR"] = int(
+            #     best_params["salaire_annuel_sansCS_avantIR"]
+            # )
+            # st.session_state["proportion_du_resultat_versee_en_dividende"] = int(
+            #     best_params["proportion_dividende"] * 100
+            # )
+            # st.session_state["charges_deductibles"] = int(
+            #     best_params["charges_deductibles"]
+            # )
 
             ### Write best trial in session state
             st.session_state["best_trial"]["salaire_annuel_sansCS_avantIR"] = (
@@ -195,7 +192,7 @@ class Home:
             self.charges_deductibles = st.number_input(
                 "Charges déductibles (€)",
                 min_value=0,
-                value=32000,
+                value=st.session_state["charges_deductibles"],
                 step=1000,
             )
             st.session_state["charges_deductibles"] = self.charges_deductibles
@@ -247,12 +244,12 @@ class Home:
                 self.salaire_annuel_sansCS_avantIR = st.number_input(
                     "Salaire annuel du président (€)",
                     min_value=0,
-                    value=10000,
+                    value=st.session_state["salaire_annuel_sansCS_avantIR"],
                     step=1000,
                 )
-                st.session_state["salaire_annuel_sansCS_avantIR"] = (
-                    self.salaire_annuel_sansCS_avantIR
-                )
+                # st.session_state["salaire_annuel_sansCS_avantIR"] = (
+                #     self.salaire_annuel_sansCS_avantIR
+                # )
 
             with col2:
                 self.proportion_du_resultat_versee_en_dividende = (
@@ -260,27 +257,35 @@ class Home:
                         "Proportion du résultat après IS versée en dividendes (%)",
                         min_value=0,
                         max_value=100,
-                        value=90,
+                        value=st.session_state["proportion_du_resultat_versee_en_dividende"],
                     )
                     / 100.0
                 )
-                st.session_state["proportion_du_resultat_versee_en_dividende"] = (
-                    self.proportion_du_resultat_versee_en_dividende
-                )
+                # st.session_state["proportion_du_resultat_versee_en_dividende"] = (
+                #     self.proportion_du_resultat_versee_en_dividende
+                # )
 
         self.display_results()
 
         with st.container(border=True):
             col1, col2 = st.columns(2)
             with col1:
-                st.write(f"Reste tresorerie: :blue[{self.results.params.reste_tresorerie} €]")
+                if self.results.params.reste_tresorerie < 0:
+                    st.write(f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]")
+                else:
+                    st.write(f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]")
             with col2:
-                st.write(f"Disponible pour dividendes: :blue[{self.results.params.societe_resultat_net_apres_IS} €]")
+                if self.results.params.societe_resultat_net_apres_IS < 0:
+                    st.write(f"Disponible pour dividendes: :red[{self.results.params.societe_resultat_net_apres_IS} €]")
+                else:
+                    st.write(f"Disponible pour dividendes: :green[{self.results.params.societe_resultat_net_apres_IS} €]")
 
         self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
 
-        with st.expander("Afficher les résultats"):
+        with st.expander("Afficher le graphique"):
             self.results.plot()
+
+        with st.expander("Afficher les détails"):
             self.results.text()
 
     def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
@@ -309,8 +314,6 @@ class Home:
         with st.sidebar:
             if st.button("Optimiser le revenu du président"):
                 optim = OptimizeIncome(space, objective)
-
-        st.divider()
 
         ###-----------------------------------------------------------------------
         ### UPDATE SIDEBAR
@@ -346,7 +349,6 @@ class Home:
                     f"Meilleur revenu net après impots: {round(st.session_state['best_trial']['loss'],2)} €",
                     icon="✅",
                 )
-            st.divider()
 
     def display_results(self):
         params = {

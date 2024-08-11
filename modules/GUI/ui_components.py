@@ -25,10 +25,14 @@ def init_session_state():
         st.session_state["choix_fiscal"] = 0
     if "selected_tab" not in st.session_state:
         st.session_state["selected_tab"] = 0
-    if "user_clicked" not in st.session_state:
-        st.session_state["user_clicked"] = False
     if "best_trial" not in st.session_state:
         st.session_state["best_trial"] = {}
+    if "salaire_annuel_sansCS_avantIR" not in st.session_state:
+        st.session_state["salaire_annuel_sansCS_avantIR"] = 10000
+    if "proportion_du_resultat_versee_en_dividende" not in st.session_state:
+        st.session_state["proportion_du_resultat_versee_en_dividende"] = 90
+    if "charges_deductibles" not in st.session_state:  
+        st.session_state["charges_deductibles"] = 32000
 
 
 def init_page_config(

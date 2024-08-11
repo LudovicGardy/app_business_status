@@ -16,7 +16,7 @@ class Scenario:
             self.params["charges_deductibles"],
             self.params["type_societe"],
             self.params["salaire_annuel_avecCS_avantIR"],
-            hyperopt=True,
+            self.params["running_hyperopt"],
         )
         resultat_dividendes = Dividendes(
             resultat_net.societe_resultat_net_apres_IS,
@@ -165,7 +165,7 @@ class ResultatNet:
         charges_deductibles: float,
         type_societe: str,
         salaire_annuel_sansCS_avantIR: float,
-        hyperopt=False,
+        running_hyperopt=False,
     ):
         with open("config/taxes.yaml", "r") as file:
             self.config_yaml = yaml.safe_load(file)
@@ -186,7 +186,7 @@ class ResultatNet:
         ### --> On veut faire les prévisions sur le 30000€ (salaire reçu), pas sur le 54000€ (coût du salaire, que l'on
         ### calcule justement dans cette fonction avec <charges_sociales_sur_salaire_president>).
         ### Pour ce même exemple, on aura (30000€ * 0.8) = 24000€.
-        if hyperopt:
+        if running_hyperopt:
             if type_societe == "EURL":
                 salaire_annuel_sansCS_avantIR *= (
                     self.config_yaml["societe"]["EURL"]["charges_sociales"][

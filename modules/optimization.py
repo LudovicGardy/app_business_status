@@ -8,6 +8,7 @@ from modules.calculs import Scenario
 
 # Objective function
 def objective(hyperopt_params: Dict[str, Any]) -> Dict[str, Any]:
+    hyperopt_params["running_hyperopt"] = True
     scenario = Scenario(hyperopt_params)
 
     write_results_dict = {

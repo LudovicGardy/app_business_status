@@ -124,8 +124,8 @@ class OptimizeIncome:
             ]["salaire_annuel_sansCS_avantIR"]  # int(best_params['salaire_annuel'])
 
             ### Print best params in a loop
-            for key, value in best_params.items():
-                st.write(f"  . {key}: {value}")
+            for key in best_params:
+                st.write(f"  . {key}: {best_params[key]}")
 
             ### Set new values and refresh
             st.session_state["type_societe"] = int(best_params["type_societe"])
@@ -268,18 +268,20 @@ class Home:
                     self.proportion_du_resultat_versee_en_dividende
                 )
 
+        self.display_results()
+
+        with st.container(border=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write(f"Reste tresorerie: :blue[{self.results.params.reste_tresorerie} €]")
+            with col2:
+                st.write(f"Disponible pour dividendes: :blue[{self.results.params.societe_resultat_net_apres_IS} €]")
+
         self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
 
-        # st.divider()
-
-        # if st.button("Afficher les résultats"):
-        #     st.session_state["user_clicked"] = True
-
-        # if st.session_state["user_clicked"]:
         with st.expander("Afficher les résultats"):
-            self.display_results()
-
-        st.write(f"Reste tresorerie: :blue[{self.results.params.reste_tresorerie} €]")
+            self.results.plot()
+            self.results.text()
 
     def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
         # Définition de l'espace de recherche
@@ -307,8 +309,6 @@ class Home:
         with st.sidebar:
             if st.button("Optimiser le revenu du président"):
                 optim = OptimizeIncome(space, objective)
-                st.session_state["user_clicked"] = True
-                st.rerun()
 
         st.divider()
 
@@ -355,6 +355,7 @@ class Home:
             "choix_fiscal": self.choix_fiscal,
             "salaire_annuel_avecCS_avantIR": self.salaire_annuel_sansCS_avantIR,
             "proportion_dividende": self.proportion_du_resultat_versee_en_dividende,
+            "running_hyperopt": False,
         }
         scenario = Scenario(params)
 
@@ -376,10 +377,6 @@ class Home:
             taxes_total=scenario.taxes_total,
             supplement_IR=scenario.resultat_dividendes.supplement_IR,
         )
-
-        self.results.plot()
-        self.results.text()
-
 
 if __name__ == "__main__":
     calculator = Home()

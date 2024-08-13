@@ -55,7 +55,7 @@ def page_config():
         "markdown": """<style>.css-10pw50 {visibility:hidden;}</style>""",
         "page_description": """
         Une application conçue pour fournir des informations claires sur le choix entre deux structures juridiques françaises courantes : EURL et SASU.
-        \n\nComparez le salaire net, les dividendes et l'impact financier global pour prendre une décision éclairée.
+        \n\nComparez le salaire net, les dividendes et l'impact financier global pour prendre une décision éclairée et optimiser le revenu du président.
         \n\nDéveloppée par L. Gardy, Data Scientist indépendant chez [Sotis A.I.](https://www.sotisanalytics.com), cet outil offre une interface conviviale pour l'analyse financière.
         """,
     }

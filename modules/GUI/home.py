@@ -62,7 +62,7 @@ class DisplayResults:
             f"Pour un revenu imposable annuel de {self.params.president_imposable_total:.2f} €, l'impot dû est de {self.params.impot_sur_le_revenu:.2f} €"
         )
         st.write(
-            f"Après import sur le revenu, le président gagne {self.params.president_net_apres_IR:.2f} €"
+            f"Après impot sur le revenu, le président gagne {self.params.president_net_apres_IR:.2f} €"
         )
         st.divider()
         st.write(
@@ -77,7 +77,6 @@ class DisplayResults:
         st.divider()
 
     def plot(self):
-        st.divider()
 
         labels = [
             "Salaire Net",
@@ -167,16 +166,25 @@ class Home:
     def __init__(self):
         self.status_possibles = ["SASU", "EURL"]
         self.fiscalites_possibles = ["flat_tax", "bareme"]
-        self.run()
+
+        tabs = st.tabs(["⚙️ Configurations", "📊 Résultats & détails"])
+
+        with tabs[0]:
+            self.run()
+        with tabs[1]:
+            self.results.plot()
+            with st.expander("Voir les détails"):
+                self.results.text()
+
 
     def run(self):
-        st.title("Simulateur de coûts, salaires et dividendes pour SASU et EURL")
+        # st.title("Simulateur de coûts, salaires et dividendes pour SASU et EURL")
 
         ###-----------------------------------------------------------------------
         ### OPTIMISATION
 
         ##- Resultats societe
-        st.divider()
+        # st.divider()
         st.write("### Résultats annuels de la société")
         col1, col2 = st.columns(2)
 
@@ -205,7 +213,7 @@ class Home:
         salaire_avec_CS_minimum = 0
 
         with st.expander(
-            "Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
+            " Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
         ):
             ##-----------------------------------------------------------------------
             ## ANALYSE UNITAIRE
@@ -270,23 +278,24 @@ class Home:
         with st.container(border=True):
             col1, col2 = st.columns(2)
             with col1:
-                if self.results.params.reste_tresorerie < 0:
-                    st.write(f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]")
-                else:
-                    st.write(f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]")
-            with col2:
                 if self.results.params.societe_resultat_net_apres_IS < 0:
                     st.write(f"Disponible pour dividendes: :red[{self.results.params.societe_resultat_net_apres_IS} €]")
                 else:
                     st.write(f"Disponible pour dividendes: :green[{self.results.params.societe_resultat_net_apres_IS} €]")
+            with col2:
+                if self.results.params.president_net_apres_IR < 0:
+                    st.write(f"Revenu net après IR: :red[{self.results.params.president_net_apres_IR} €]")
+                else:
+                    st.write(f"Revenu net après IR: :green[{self.results.params.president_net_apres_IR} €]")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if self.results.params.reste_tresorerie < 0:
+                    st.write(f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]")
+                else:
+                    st.write(f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]")
 
         self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
-
-        with st.expander("Afficher le graphique"):
-            self.results.plot()
-
-        with st.expander("Afficher les détails"):
-            self.results.text()
 
     def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
         # Définition de l'espace de recherche
@@ -312,7 +321,7 @@ class Home:
         }
 
         with st.sidebar:
-            if st.button("Optimiser le revenu du président"):
+            if st.button("🎯 Optimiser le revenu net"):
                 optim = OptimizeIncome(space, objective)
 
         ###-----------------------------------------------------------------------

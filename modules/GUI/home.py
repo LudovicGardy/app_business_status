@@ -213,12 +213,12 @@ class Home:
         salaire_avec_CS_minimum = 0
 
         with st.expander(
-            " Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
+            "🎛️ Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
         ):
             ##-----------------------------------------------------------------------
             ## ANALYSE UNITAIRE
             ##- Paramètres legaux et fiscaux
-            st.write("### Paramètres legaux et fiscaux")
+            st.write("### Paramètres légaux et fiscaux")
             col1, col2, col3 = st.columns(3)
 
             with col1:
@@ -321,39 +321,36 @@ class Home:
         }
 
         with st.sidebar:
-            if st.button("🎯 Optimiser le revenu net"):
+            if st.button("🎯 Lancer l'optimisation du revenu"):
                 optim = OptimizeIncome(space, objective)
 
         ###-----------------------------------------------------------------------
         ### UPDATE SIDEBAR
         if st.session_state["best_trial"]:
             with st.sidebar:
-                st.sidebar.write("### Meilleurs paramètres:")
-                st.sidebar.success(
+                st.sidebar.write("Voici les résultats de l'optimisation. Utilisez les paramètres ci-dessous pour maximuiser votre revenu net.")
+                st.sidebar.write("### Paramètres légaux et fiscaux")
+                st.sidebar.info(
                     f"Type de société: {self.status_possibles[st.session_state['best_trial']['type_societe']]}",
-                    icon="✅",
+                    icon="🎛️",
                 )
-                st.sidebar.success(
+                st.sidebar.info(
                     f"Choix fiscal: {self.fiscalites_possibles[st.session_state['best_trial']['choix_fiscal']]}",
-                    icon="✅",
+                    icon="🎛️",
                 )
-                st.sidebar.success(
-                    f"Charges à déduire: {st.session_state['best_trial']['charges_deductibles']} €",
-                    icon="✅",
+                st.sidebar.info(
+                    f"Salaire net annuel: {st.session_state['best_trial']['salaire_annuel_sansCS_avantIR']:.2f} €",
+                    icon="🎛️",
                 )
-
-                st.sidebar.success(
-                    f"Salaire reçu par le président: {st.session_state['best_trial']['salaire_annuel_sansCS_avantIR']:.2f} €",
-                    icon="✅",
+                st.sidebar.info(
+                    f"Dividendes avant impôts: {st.session_state['best_trial']['dividendes_recus']:.2f} € ({int(st.session_state['best_trial']['proportion_dividende']*100)}%)",
+                    icon="🎛️",
                 )
-                st.sidebar.success(
-                    f"Dividendes reçus par le président: {st.session_state['best_trial']['dividendes_recus']:.2f} € ({int(st.session_state['best_trial']['proportion_dividende']*100)}%)",
-                    icon="✅",
-                )
-                st.sidebar.success(
+                st.sidebar.info(
                     f"Reste trésorerie: {st.session_state['best_trial']['reste_tresorerie']:.2f} €",
-                    icon="✅",
+                    icon="🎛️",
                 )
+                st.sidebar.write("### Revenus après impôts")
                 st.sidebar.success(
                     f"Meilleur revenu net après impots: {round(st.session_state['best_trial']['loss'],2)} €",
                     icon="✅",

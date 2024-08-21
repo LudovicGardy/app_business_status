@@ -3,11 +3,10 @@
 from types import SimpleNamespace
 from typing import Callable
 
-import matplotlib.pyplot as plt
 import plotly.express as px
 import streamlit as st
 import yaml
-from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
+from hyperopt import hp
 
 from ..calculs import Scenario
 from ..optimization import objective, run_optimization
@@ -77,7 +76,6 @@ class DisplayResults:
         st.divider()
 
     def plot(self):
-
         labels = [
             "Salaire Net",
             "Dividendes",
@@ -108,7 +106,6 @@ class DisplayResults:
             color=labels,
             color_discrete_map=color_map,
         )
-        #  color_discrete_sequence=px.colors.sequential.RdBu)
 
         st.plotly_chart(fig, use_container_width=True)
 
@@ -121,23 +118,9 @@ class OptimizeIncome:
 
             best_params["salaire_annuel_sansCS_avantIR"] = trials.best_trial["result"][
                 "write_results_dict"
-            ]["salaire_annuel_sansCS_avantIR"]  # int(best_params['salaire_annuel'])
+            ]["salaire_annuel_sansCS_avantIR"]
 
-            ### This does not work because of the way streamlit apply priority to the widgets values
-            # ### Set new values and refresh
-            # st.session_state["type_societe"] = int(best_params["type_societe"])
-            # st.session_state["choix_fiscal"] = int(best_params["choix_fiscal"])
-            # st.session_state["salaire_annuel_sansCS_avantIR"] = int(
-            #     best_params["salaire_annuel_sansCS_avantIR"]
-            # )
-            # st.session_state["proportion_du_resultat_versee_en_dividende"] = int(
-            #     best_params["proportion_dividende"] * 100
-            # )
-            # st.session_state["charges_deductibles"] = int(
-            #     best_params["charges_deductibles"]
-            # )
-
-            ### Write best trial in session state
+            # Write best trial in session state for display in the sidebar
             st.session_state["best_trial"]["salaire_annuel_sansCS_avantIR"] = (
                 best_params["salaire_annuel_sansCS_avantIR"]
             )
@@ -176,15 +159,7 @@ class Home:
             with st.expander("Voir les détails"):
                 self.results.text()
 
-
     def run(self):
-        # st.title("Simulateur de coûts, salaires et dividendes pour SASU et EURL")
-
-        ###-----------------------------------------------------------------------
-        ### OPTIMISATION
-
-        ##- Resultats societe
-        # st.divider()
         st.write("### Résultats annuels de la société")
         col1, col2 = st.columns(2)
 
@@ -205,7 +180,6 @@ class Home:
             )
             st.session_state["charges_deductibles"] = self.charges_deductibles
 
-        ##- Resultats societe
         salaire_avec_CS_maximum = (
             st.session_state["chiffre_affaire_HT"]
             - st.session_state["charges_deductibles"]
@@ -215,9 +189,7 @@ class Home:
         with st.expander(
             "🎛️ Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
         ):
-            ##-----------------------------------------------------------------------
-            ## ANALYSE UNITAIRE
-            ##- Paramètres legaux et fiscaux
+            # Paramètres legaux et fiscaux
             st.write("### Paramètres légaux et fiscaux")
             col1, col2, col3 = st.columns(3)
 
@@ -242,8 +214,6 @@ class Home:
                 )
                 st.session_state["capital_social_societe"] = self.capital_social_societe
 
-            ##- Salaire president et Dividendes
-            # st.divider()
             st.write("### Salaire du président et Dividendes")
 
             col1, col2 = st.columns(2)
@@ -255,9 +225,6 @@ class Home:
                     value=st.session_state["salaire_annuel_sansCS_avantIR"],
                     step=1000,
                 )
-                # st.session_state["salaire_annuel_sansCS_avantIR"] = (
-                #     self.salaire_annuel_sansCS_avantIR
-                # )
 
             with col2:
                 self.proportion_du_resultat_versee_en_dividende = (
@@ -265,13 +232,12 @@ class Home:
                         "Proportion du résultat après IS versée en dividendes (%)",
                         min_value=0,
                         max_value=100,
-                        value=st.session_state["proportion_du_resultat_versee_en_dividende"],
+                        value=st.session_state[
+                            "proportion_du_resultat_versee_en_dividende"
+                        ],
                     )
                     / 100.0
                 )
-                # st.session_state["proportion_du_resultat_versee_en_dividende"] = (
-                #     self.proportion_du_resultat_versee_en_dividende
-                # )
 
         self.display_results()
 
@@ -279,26 +245,37 @@ class Home:
             col1, col2 = st.columns(2)
             with col1:
                 if self.results.params.societe_resultat_net_apres_IS < 0:
-                    st.write(f"Disponible pour dividendes: :red[{self.results.params.societe_resultat_net_apres_IS} €]")
+                    st.write(
+                        f"Disponible pour dividendes: :red[{self.results.params.societe_resultat_net_apres_IS} €]"
+                    )
                 else:
-                    st.write(f"Disponible pour dividendes: :green[{self.results.params.societe_resultat_net_apres_IS} €]")
+                    st.write(
+                        f"Disponible pour dividendes: :green[{self.results.params.societe_resultat_net_apres_IS} €]"
+                    )
             with col2:
                 if self.results.params.president_net_apres_IR < 0:
-                    st.write(f"Revenu net après IR: :red[{self.results.params.president_net_apres_IR} €]")
+                    st.write(
+                        f"Revenu net après IR: :red[{self.results.params.president_net_apres_IR} €]"
+                    )
                 else:
-                    st.write(f"Revenu net après IR: :green[{self.results.params.president_net_apres_IR} €]")
+                    st.write(
+                        f"Revenu net après IR: :green[{self.results.params.president_net_apres_IR} €]"
+                    )
 
             col1, col2 = st.columns(2)
             with col1:
                 if self.results.params.reste_tresorerie < 0:
-                    st.write(f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]")
+                    st.write(
+                        f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]"
+                    )
                 else:
-                    st.write(f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]")
+                    st.write(
+                        f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]"
+                    )
 
         self.optimization(salaire_avec_CS_minimum, salaire_avec_CS_maximum)
 
     def optimization(self, salaire_avec_CS_minimum, salaire_avec_CS_maximum):
-        # Définition de l'espace de recherche
         space = {
             "type_societe": hp.choice("type_societe", self.status_possibles),
             "choix_fiscal": hp.choice("choix_fiscal", self.fiscalites_possibles),
@@ -310,25 +287,24 @@ class Home:
             ),
             "proportion_dividende": hp.quniform(
                 "proportion_dividende", 0, 1, 0.1
-            ),  # Proportion des dividendes entre 0 et 1 (0% à 100%)
-            # 'charges_deductibles': hp.quniform('charges_deductibles', st.session_state['charges_deductibles'], st.session_state['chiffre_affaire_HT']-st.session_state['charges_deductibles'], 1000)  # Exemple: charges déductibles entre 0 et 10000 euros,
+            ),  # Proportion of the result paid as dividends
             "charges_deductibles": hp.quniform(
                 "charges_deductibles",
                 st.session_state["charges_deductibles"] - 1,
                 st.session_state["charges_deductibles"],
                 1,
-            ),  # This parameter should not be optimized
+            ),  # This parameter should not be optimized but is here for the optimization to work
         }
 
         with st.sidebar:
             if st.button("🎯 Lancer l'optimisation du revenu"):
                 optim = OptimizeIncome(space, objective)
 
-        ###-----------------------------------------------------------------------
-        ### UPDATE SIDEBAR
         if st.session_state["best_trial"]:
             with st.sidebar:
-                st.sidebar.write("Voici les résultats de l'optimisation. Utilisez les paramètres ci-dessous pour maximuiser votre revenu net.")
+                st.sidebar.write(
+                    "Voici les résultats de l'optimisation. Utilisez les paramètres ci-dessous pour maximuiser votre revenu net."
+                )
                 st.sidebar.write("### Paramètres légaux et fiscaux")
                 st.sidebar.info(
                     f"Type de société: {self.status_possibles[st.session_state['best_trial']['type_societe']]}",
@@ -385,6 +361,7 @@ class Home:
             taxes_total=scenario.taxes_total,
             supplement_IR=scenario.resultat_dividendes.supplement_IR,
         )
+
 
 if __name__ == "__main__":
     calculator = Home()

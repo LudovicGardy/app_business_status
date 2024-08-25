@@ -10,7 +10,7 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
 
 🌐 Access the app and start your analysis now at [https://business-status.app](https://business-status-583ac98f38cb.herokuapp.com/).
 
-![Image1](images/image1.1.png)
+![Image1](images/image1.2.png)
 
 ## Prerequisites
 - Anaconda or Miniconda

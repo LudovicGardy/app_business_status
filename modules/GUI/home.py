@@ -303,7 +303,7 @@ class Home:
         if st.session_state["best_trial"]:
             with st.sidebar:
                 st.sidebar.write(
-                    "Voici les résultats de l'optimisation. Utilisez les paramètres ci-dessous pour maximuiser votre revenu net."
+                    "Voici les résultats de l'optimisation. Utilisez les paramètres ci-dessous pour maximiser votre revenu net et consulter les détails dans l'application."
                 )
                 st.sidebar.write("### Paramètres légaux et fiscaux")
                 st.sidebar.info(

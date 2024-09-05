@@ -27,7 +27,7 @@ class Scenario:
         )
         president_imposable_total = (
             resultat_net.salaire_annuel_sansCS_avantIR
-            + resultat_dividendes.supplement_IR
+            + resultat_dividendes.supplement_imposable
         )
         resultat_IR = ImpotRevenus(president_imposable_total)
         president_net_apres_IR = (
@@ -108,7 +108,7 @@ class Dividendes:
         if choix_fiscal == "flat_tax":
             taux_dividendes = (
                 self.config_yaml["dividendes"]["flat_tax"]["TMI"]
-                + self.config_yaml["dividendes"]["flat_tax"]["CSG"]
+                + self.config_yaml["dividendes"]["flat_tax"]["prelevements_sociaux"]
             ) / 100
             charges_sur_dividendes = round(
                 montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
@@ -121,41 +121,52 @@ class Dividendes:
             print(
                 f"- dividendes_recus_par_president_annuellement: {dividendes_recus_par_president_annuellement}"
             )
-            reste_tresorerie = round(
-                societe_resultat_net_apres_IS
-                - montant_verse_en_dividendes_au_president_annuellement
-            )
-            print(f"= reste_tresorerie: {reste_tresorerie} €")
-            supplement_IR = 0
+            supplement_imposable = 0
         elif choix_fiscal == "bareme":
-            taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["TMI"] / 100
-            charges_sur_dividendes = round(
-                montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
+            dividendes_abattus = (
+                montant_verse_en_dividendes_au_president_annuellement -
+                montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["abattement"] / 100
             )
-            dividendes_recus_par_president_annuellement = (
-                montant_verse_en_dividendes_au_president_annuellement
-                - charges_sur_dividendes
+
+            CSG_cout = montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["CSG"] / 100
+
+            dividendes_imposables = dividendes_abattus - CSG_cout
+
+            prelevements_sociaux = montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["prelevements_sociaux"] / 100
+
+            supplement_imposable = round(
+                dividendes_imposables * self.config_yaml["dividendes"]["bareme"]["TMI"] / 100
             )
-            reste_tresorerie = round(
-                societe_resultat_net_apres_IS
-                - montant_verse_en_dividendes_au_president_annuellement
-            )
-            print(f"= reste_tresorerie: {reste_tresorerie} €")
-            dividendes_abbatement_IR = (
-                self.config_yaml["dividendes"]["flat_tax"]["abattement"] / 100
-            )
-            supplement_IR = round(
-                dividendes_recus_par_president_annuellement
-                * (1 - dividendes_abbatement_IR),
-                2,
-            )
+
+            # taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["prelevements_sociaux"] / 100
+            # charges_sur_dividendes = round(
+            #     montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
+            # )
+            # dividendes_recus_par_president_annuellement = (
+            #     montant_verse_en_dividendes_au_president_annuellement
+            #     - charges_sur_dividendes
+            # )
+            # dividendes_abbatement_IR = (
+            #     self.config_yaml["dividendes"]["flat_tax"]["abattement"] / 100
+            # )
+            # supplement_IR = round(
+            #     dividendes_recus_par_president_annuellement
+            #     * (1 - dividendes_abbatement_IR),
+            #     2,
+            # )
+
+        reste_tresorerie = round(
+            societe_resultat_net_apres_IS
+            - montant_verse_en_dividendes_au_president_annuellement
+        )
+        print(f"= reste_tresorerie: {reste_tresorerie} €")
 
         self.charges_sur_dividendes = charges_sur_dividendes
         self.dividendes_recus_par_president_annuellement = (
             dividendes_recus_par_president_annuellement
         )
         self.reste_tresorerie = reste_tresorerie
-        self.supplement_IR = supplement_IR
+        self.supplement_imposable = supplement_imposable
 
 
 class ResultatNet:

@@ -3,7 +3,7 @@ tranches_IR:
   - [11296, 29787, 11]  # min (€), max (€), taux (%)
   - [29788, 82342, 30]  # min (€), max (€), taux (%)
   - [82343, 177106, 41]  # min (€), max (€), taux (%)
-  - [177107, inf, 45]  # min (€), max (€), taux (%)
+  - [177107, 99999999999999999999999, 45]  # min (€), max (€), taux (%)
 
 TVA:
   taux_normal: 20  # (%)
@@ -11,9 +11,9 @@ TVA:
   taux_intermediaire: 10  # (%)
 
 dividendes:
-  flat_tax:
-    TMI: 17.2  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
-    CSG: 12.8  # (%)
+    prelevements_sociaux: 17.2  # (%) 
+    CSG: 6.8  # (%) Contribution Sociale Généralisée
+    TMI: 12.8  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
     abattement: 40  # (%)
 
 societe:

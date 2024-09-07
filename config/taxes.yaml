@@ -12,7 +12,7 @@ TVA:
 
 dividendes:
     prelevements_sociaux: 17.2  # (%) 
-    CSG: 6.8  # (%) Contribution Sociale Généralisée
+    CSG: 6.8  # (%) Contribution Sociale Généralisée (/!\ déjà compté dans les <prelevements_sociaux>)
     TMI: 12.8  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
     abattement: 40  # (%)
 

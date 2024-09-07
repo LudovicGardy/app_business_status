@@ -38,8 +38,8 @@ class Scenario:
         taxes_total = (
             resultat_net.charges_sociales_sur_salaire_president
             + resultat_net.impots_sur_les_societes
-            + resultat_dividendes.charges_sur_dividendes
             + resultat_IR.impot_sur_le_revenu
+            + resultat_dividendes.supplement_IR
         )
 
         self.resultat_net = resultat_net
@@ -79,6 +79,8 @@ class ImpotRevenus:
 
 
 class Dividendes:
+    #https://www.indy.fr/blog/imposition-dividendes-bareme-progressif-pfu/
+    #https://www.l-expert-comptable.com/a/531891-dividendes-et-impot-sur-le-revenu.html
     def __init__(
         self,
         societe_resultat_net_apres_IS: float,
@@ -92,82 +94,63 @@ class Dividendes:
 
         print("\n### calcul_dividendes \n-------------------------")
 
-        montant_verse_en_dividendes_au_president_annuellement = (
+        self.montant_verse_en_dividendes_au_president_annuellement = (
             societe_resultat_net_apres_IS * proportion_du_resultat_versee_en_dividende
         )
 
         if (
             type_societe == "EURL"
-            and montant_verse_en_dividendes_au_president_annuellement
+            and self.montant_verse_en_dividendes_au_president_annuellement
             > capital_social_societe * 0.1
         ):
-            montant_verse_en_dividendes_au_president_annuellement = (
+            self.montant_verse_en_dividendes_au_president_annuellement = (
                 capital_social_societe - 1
             )
 
         if choix_fiscal == "flat_tax":
-            taux_dividendes = (
-                self.config_yaml["dividendes"]["flat_tax"]["TMI"]
-                + self.config_yaml["dividendes"]["flat_tax"]["prelevements_sociaux"]
-            ) / 100
-            charges_sur_dividendes = round(
-                montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
-            )
-            print(f"- charges_sur_dividendes: {charges_sur_dividendes}")
-            dividendes_recus_par_president_annuellement = round(
-                montant_verse_en_dividendes_au_president_annuellement
-                - charges_sur_dividendes
-            )
-            print(
-                f"- dividendes_recus_par_president_annuellement: {dividendes_recus_par_president_annuellement}"
-            )
-            supplement_imposable = 0
+            self.flat_tax_choice()
         elif choix_fiscal == "bareme":
-            dividendes_abattus = (
-                montant_verse_en_dividendes_au_president_annuellement -
-                montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["abattement"] / 100
-            )
+            self.bareme_choice()
 
-            CSG_cout = montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["CSG"] / 100
-
-            dividendes_imposables = dividendes_abattus - CSG_cout
-
-            prelevements_sociaux = montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["bareme"]["prelevements_sociaux"] / 100
-
-            supplement_imposable = round(
-                dividendes_imposables * self.config_yaml["dividendes"]["bareme"]["TMI"] / 100
-            )
-
-            # taux_dividendes = self.config_yaml["dividendes"]["flat_tax"]["prelevements_sociaux"] / 100
-            # charges_sur_dividendes = round(
-            #     montant_verse_en_dividendes_au_president_annuellement * taux_dividendes
-            # )
-            # dividendes_recus_par_president_annuellement = (
-            #     montant_verse_en_dividendes_au_president_annuellement
-            #     - charges_sur_dividendes
-            # )
-            # dividendes_abbatement_IR = (
-            #     self.config_yaml["dividendes"]["flat_tax"]["abattement"] / 100
-            # )
-            # supplement_IR = round(
-            #     dividendes_recus_par_president_annuellement
-            #     * (1 - dividendes_abbatement_IR),
-            #     2,
-            # )
 
         reste_tresorerie = round(
             societe_resultat_net_apres_IS
-            - montant_verse_en_dividendes_au_president_annuellement
+            - self.montant_verse_en_dividendes_au_president_annuellement
         )
         print(f"= reste_tresorerie: {reste_tresorerie} €")
 
-        self.charges_sur_dividendes = charges_sur_dividendes
+        # self.charges_sur_dividendes = charges_sur_dividendes
         self.dividendes_recus_par_president_annuellement = (
-            dividendes_recus_par_president_annuellement
+            self.dividendes_recus_par_president_annuellement
         )
         self.reste_tresorerie = reste_tresorerie
-        self.supplement_imposable = supplement_imposable
+        self.supplement_imposable = self.supplement_imposable
 
+    def flat_tax_choice(self):
+        prelevements_sociaux_cout = self.montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["prelevements_sociaux"] / 100
+        TMI_cout = self.montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["TMI"] / 100
+        self.supplement_imposable = 0
+        self.supplement_IR = 0
+        self.dividendes_recus_par_president_annuellement = round(
+            self.montant_verse_en_dividendes_au_president_annuellement
+            - TMI_cout
+            - prelevements_sociaux_cout
+        )
+
+    def bareme_choice(self):
+        dividendes_abattus = (
+            self.montant_verse_en_dividendes_au_president_annuellement
+            - self.montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["abattement"] / 100
+        )
+
+        CSG_cout = self.montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["CSG"] / 100
+        prelevements_sociaux_cout = self.supplement_IR =  self.montant_verse_en_dividendes_au_president_annuellement * self.config_yaml["dividendes"]["prelevements_sociaux"] / 100
+        self.supplement_imposable = dividendes_abattus - CSG_cout
+
+        self.dividendes_recus_par_president_annuellement = round(
+            self.montant_verse_en_dividendes_au_president_annuellement
+            - prelevements_sociaux_cout
+        )
 
 class ResultatNet:
     def __init__(

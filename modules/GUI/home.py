@@ -8,13 +8,13 @@ import streamlit as st
 import yaml
 from hyperopt import hp
 
-from ..dividendes import DividendesSASU
-from ..impot_societes import ImpotSocieteSASU
-from ..salaires import SalaireSASU
-from ..utils import calcul_impots_IR
+from modules.dividendes import DividendesSASU
+from modules.impot_societes import ImpotSocieteSASU
+from modules.salaires import SalaireSASU
+from modules.utils import calcul_impots_IR
 
 
-class Home:
+class StreamlitWidgets:
     def __init__(self):
         self.status_possibles = ["SASU", "EURL"]
         self.fiscalites_possibles = ["flat_tax", "bareme"]
@@ -22,14 +22,14 @@ class Home:
         tabs = st.tabs(["⚙️ Configurations", "📊 Résultats & détails"])
 
         with tabs[0]:
-            self.run()
+            self.set_streamlit_widgets()
         with tabs[1]:
             st.write("### Détails des calculs")
             # self.results.plot()
             # with st.expander("Voir les détails"):
                 # self.results.text()
 
-    def run(self):
+    def set_streamlit_widgets(self):
         st.write("### Résultats annuels de la société")
         col1, col2 = st.columns(2)
 
@@ -109,39 +109,48 @@ class Home:
                     / 100.0
                 )
 
-        # self.display_results()
+class Home(StreamlitWidgets):
+    def __init__(self):
+        super().__init__()
 
-        # with st.container(border=True):
-        #     col1, col2 = st.columns(2)
-        #     with col1:
-        #         if self.results.params.societe_resultat_net_apres_IS < 0:
-        #             st.write(
-        #                 f"Disponible pour dividendes: :red[{self.results.params.societe_resultat_net_apres_IS} €]"
-        #             )
-        #         else:
-        #             st.write(
-        #                 f"Disponible pour dividendes: :green[{self.results.params.societe_resultat_net_apres_IS} €]"
-        #             )
-        #     with col2:
-        #         if self.results.params.president_net_apres_IR < 0:
-        #             st.write(
-        #                 f"Revenu net après IR: :red[{self.results.params.president_net_apres_IR} €]"
-        #             )
-        #         else:
-        #             st.write(
-        #                 f"Revenu net après IR: :green[{self.results.params.president_net_apres_IR} €]"
-        #             )
+        self.calculs_salaire_president()
 
-        #     col1, col2 = st.columns(2)
-        #     with col1:
-        #         if self.results.params.reste_tresorerie < 0:
-        #             st.write(
-        #                 f"Reste tresorerie: :red[{self.results.params.reste_tresorerie} €]"
-        #             )
-        #         else:
-        #             st.write(
-        #                 f"Reste tresorerie: :green[{self.results.params.reste_tresorerie} €]"
-        #             )
+        self.calculs_dividendes()
+        self.display_dividendes()
+        
+        self.calculs_impot_societe()
+
+    def calculs_salaire_president(self):
+        # Calcul du salaire net du président
+        salaire_president = SalaireSASU(self.salaire_annuel_sansCS_avantIR)
+        self.salaire_net_president = salaire_president.calcul_salaire_net()
+
+    def calculs_dividendes(self):
+        # Calcul des dividendes versés
+        self.dividendes_verses = (
+            self.chiffre_affaire_HT
+            - self.charges_deductibles
+            - self.salaire_net_president
+        ) * self.proportion_du_resultat_versee_en_dividende
+
+        # Calcul de l'imposition des dividendes
+        self.dividendes = DividendesSASU(
+            self.dividendes_verses,
+            self.type_societe,
+            self.choix_fiscal,
+        )
+
+    def display_dividendes(self):
+        # Affichage des messages dans Streamlit
+        for message in self.dividendes.streamlit_output:
+            st.text(message)
+
+    def calculs_impot_societe(self):
+        # Calcul de l'impôt sur les sociétés
+        impot_societe = ImpotSocieteSASU(
+            self.chiffre_affaire_HT - self.charges_deductibles,
+            self.type_societe,
+        )
 
 if __name__ == "__main__":
     calculator = Home()

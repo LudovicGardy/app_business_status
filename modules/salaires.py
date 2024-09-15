@@ -8,7 +8,7 @@ class SalairePresident(ABC):
     def __init__(self, salaire_brut):
         self.salaire_brut = salaire_brut
 
-        with open("../config/config.yaml", "r") as file:
+        with open("config/config.yaml", "r") as file:
             self.config_yaml = yaml.safe_load(file)
 
     @abstractmethod

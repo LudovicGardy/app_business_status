@@ -7,7 +7,7 @@ class ImpotSociete(ABC):
         resultat_net_avant_impot: float,
         type_societe: str,
     ):
-        with open("../config/config.yaml", "r") as file:
+        with open("config/config.yaml", "r") as file:
             self.config_yaml = yaml.safe_load(file)
 
         print("\n### Calcul de l'impôt sur les sociétés\n-------------------------")

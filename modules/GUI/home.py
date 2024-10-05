@@ -2,7 +2,6 @@
 
 from types import SimpleNamespace
 from typing import Callable
-
 import plotly.express as px
 import streamlit as st
 import yaml
@@ -25,9 +24,6 @@ class StreamlitWidgets:
             self.set_streamlit_widgets()
         with tabs[1]:
             st.write("### Détails des calculs")
-            # self.results.plot()
-            # with st.expander("Voir les détails"):
-                # self.results.text()
 
     def set_streamlit_widgets(self):
         st.write("### Résultats annuels de la société")
@@ -45,7 +41,7 @@ class StreamlitWidgets:
             self.charges_deductibles = st.number_input(
                 "Charges déductibles (€)",
                 min_value=0,
-                value=st.session_state["charges_deductibles"],
+                value=st.session_state.get("charges_deductibles", 50000),
                 step=1000,
             )
             st.session_state["charges_deductibles"] = self.charges_deductibles
@@ -59,7 +55,7 @@ class StreamlitWidgets:
         with st.expander(
             "🎛️ Accéder aux autres réglages (pas nécessaire en cas d'optimisation)"
         ):
-            # Paramètres legaux et fiscaux
+            # Paramètres légaux et fiscaux
             st.write("### Paramètres légaux et fiscaux")
             col1, col2, col3 = st.columns(3)
 
@@ -67,13 +63,13 @@ class StreamlitWidgets:
                 self.type_societe = st.selectbox(
                     "Type de société",
                     self.status_possibles,
-                    index=st.session_state["type_societe"],
+                    index=st.session_state.get("type_societe", 0),
                 )
             with col2:
                 self.choix_fiscal = st.selectbox(
                     "Régime fiscal des dividendes",
                     self.fiscalites_possibles,
-                    index=st.session_state["choix_fiscal"],
+                    index=st.session_state.get("choix_fiscal", 0),
                 )
             with col3:
                 self.capital_social_societe = st.number_input(
@@ -92,7 +88,7 @@ class StreamlitWidgets:
                 self.salaire_annuel_sansCS_avantIR = st.number_input(
                     "Salaire annuel du président (€)",
                     min_value=0,
-                    value=st.session_state["salaire_annuel_sansCS_avantIR"],
+                    value=st.session_state.get("salaire_annuel_sansCS_avantIR", 50000),
                     step=1000,
                 )
 
@@ -102,22 +98,21 @@ class StreamlitWidgets:
                         "Proportion du résultat après IS versée en dividendes (%)",
                         min_value=0,
                         max_value=100,
-                        value=st.session_state[
-                            "proportion_du_resultat_versee_en_dividende"
-                        ],
+                        value=st.session_state.get(
+                            "proportion_du_resultat_versee_en_dividende", 50
+                        ),
                     )
                     / 100.0
                 )
+
 
 class Home(StreamlitWidgets):
     def __init__(self):
         super().__init__()
 
         self.calculs_salaire_president()
-
         self.calculs_dividendes()
-        self.display_dividendes()
-        
+        self.display_dividendes()  # Affichage du texte et des résultats graphiques
         self.calculs_impot_societe()
 
     def calculs_salaire_president(self):
@@ -141,9 +136,45 @@ class Home(StreamlitWidgets):
         )
 
     def display_dividendes(self):
-        # Affichage des messages dans Streamlit
+        # Affichage des messages texte
+        st.write("### Résultats des calculs des dividendes")
         for message in self.dividendes.streamlit_output:
             st.text(message)
+
+        # Graphiques interactifs à partir des résultats stockés
+        log_data = self.dividendes.log_data
+
+        # Création d'un dataframe pour faciliter la visualisation
+        data = {
+            "Catégories": [
+                "Dividendes versés",
+                "Prélèvement TMI",
+                "Imposition totale",
+                "Dividendes nets",
+                "Prélèvements sociaux",
+                "CSG déductible",
+                "Base imposable",
+            ],
+            "Montants (€)": [
+                log_data.dividendes_verses,
+                log_data.tmi,
+                log_data.imposition_totale,
+                log_data.dividendes_net,
+                log_data.prelevements_sociaux_total,
+                log_data.csg_deductible_amount,
+                log_data.base_imposable,
+            ],
+        }
+
+        fig = px.bar(
+            data,
+            x="Catégories",
+            y="Montants (€)",
+            title="Répartition des dividendes et imposition",
+            labels={"Montants (€)": "Montants en euros"},
+        )
+
+        st.plotly_chart(fig)
 
     def calculs_impot_societe(self):
         # Calcul de l'impôt sur les sociétés
@@ -151,6 +182,7 @@ class Home(StreamlitWidgets):
             self.chiffre_affaire_HT - self.charges_deductibles,
             self.type_societe,
         )
+
 
 if __name__ == "__main__":
     calculator = Home()

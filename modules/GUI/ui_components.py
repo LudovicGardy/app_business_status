@@ -30,7 +30,7 @@ def init_session_state():
     if "salaire_annuel_sansCS_avantIR" not in st.session_state:
         st.session_state["salaire_annuel_sansCS_avantIR"] = 10000
     if "proportion_du_resultat_versee_en_dividende" not in st.session_state:
-        st.session_state["proportion_du_resultat_versee_en_dividende"] = 90
+        st.session_state["proportion_du_resultat_versee_en_dividende"] = 100
     if "charges_deductibles" not in st.session_state:  
         st.session_state["charges_deductibles"] = 32000
 

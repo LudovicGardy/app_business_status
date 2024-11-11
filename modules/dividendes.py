@@ -31,7 +31,7 @@ class Dividendes(ABC):
         dividendes_verses: float,
         type_societe: str,
         choix_fiscal: str,
-        streamlit_output=None  # Ajout d'un argument pour capturer les messages
+        streamlit_output=None 
     ):
         with open("config/config.yaml", "r") as file:
             self.config_yaml = yaml.safe_load(file)
@@ -41,14 +41,14 @@ class Dividendes(ABC):
         self.dividendes_verses = dividendes_verses
         self.type_societe = type_societe
         self.choix_fiscal = choix_fiscal
-        self.streamlit_output = streamlit_output or []  # Liste pour capturer les messages
-        self.store_info("\n### Calcul des dividendes\n-------------------------")
+        self.streamlit_output = streamlit_output or []
+        self.store_info("### Dividendes")
         self.calcul_imposition()
 
     def store_info(self, message):
         """Ajoute un message à la liste ou l'affiche selon le contexte Streamlit."""
-        self.streamlit_output.append(message)  # Capture les messages
-        self.log_data.add_log(message)  # Ajoute également dans la dataclass
+        self.streamlit_output.append(message)
+        self.log_data.add_log(message)
 
     @abstractmethod
     def calcul_imposition(self):
@@ -70,16 +70,16 @@ class DividendesSASU(Dividendes):
         # Prélèvement de 12,8 % sur les dividendes pour l'impôt sur le revenu (TMI)
         tmi = self.dividendes_verses * self.config_yaml["SASU"]["dividendes"]["TMI"] / 100
         self.store_info(f"Prélèvement TMI (12,8%) : {tmi} €")
-        self.log_data.tmi = tmi  # Stocker le résultat dans la dataclass
+        self.log_data.tmi = tmi
 
         # Imposition totale sous la flat tax
         self.imposition_totale = tmi + prelevements_sociaux_total
-        self.log_data.imposition_totale = self.imposition_totale  # Stocker l'imposition totale
-        self.dividendes_net = round(self.dividendes_verses - self.imposition_totale)  # Non imposable (flat tax)
-        self.log_data.dividendes_net = self.dividendes_net  # Stocker les dividendes nets
+        self.log_data.imposition_totale = self.imposition_totale
+        self.dividendes_net = round(self.dividendes_verses - self.imposition_totale)  
+        self.log_data.dividendes_net = self.dividendes_net
 
-        self.store_info(f"Imposition totale (flat tax) : {self.imposition_totale} €")
-        self.store_info(f"Dividendes nets (flat tax) pour SASU : {self.dividendes_net} €")
+        self.store_info(f"Imposition totale (flat tax) : :red[{self.imposition_totale:.2f} €]")
+        self.store_info(f"Dividendes nets (flat tax) pour SASU : :green[{self.dividendes_net:.2f} €]")
 
         # La base imposable est de 0 sous flat tax
         self.log_data.base_imposable = 0
@@ -106,12 +106,12 @@ class DividendesSASU(Dividendes):
         )
 
         # Log et stockage des prélèvements sociaux
-        self.store_info(f"Dividendes versés : {self.dividendes_verses} €")
-        self.store_info(f"CSG déductible (6,8%) : {csg_deductible_amount} €")
-        self.store_info(f"CSG non déductible (2,4%) : {csg_non_deductible_amount} €")
-        self.store_info(f"CRDS (0,5%) : {crds_amount} €")
-        self.store_info(f"Solidarité (7,5%) : {solidarite_amount} €")
-        self.store_info(f"Total des prélèvements sociaux : {prelevements_sociaux_total} €")
+        self.store_info(f"Dividendes versés : :blue[{self.dividendes_verses:.2f} €]")
+        self.store_info(f"CSG déductible (6,8%) : {csg_deductible_amount:.2f} €")
+        self.store_info(f"CSG non déductible (2,4%) : {csg_non_deductible_amount:.2f} €")
+        self.store_info(f"CRDS (0,5%) : {crds_amount:.2f} €")
+        self.store_info(f"Solidarité (7,5%) : {solidarite_amount:.2f} €")
+        self.store_info(f"Total des prélèvements sociaux : {prelevements_sociaux_total:.2f} €")
 
         # Stockage dans la dataclass
         self.log_data.csg_deductible_amount = csg_deductible_amount
@@ -128,10 +128,9 @@ class DividendesSASU(Dividendes):
 
         abattement = self.dividendes_verses * 40 / 100
         self.base_imposable = self.dividendes_verses - abattement 
-        self.store_info(f"Abattement (40%) : {abattement} €")
-        self.store_info(f"Base imposable après abattement : {self.base_imposable} €")
+        self.store_info(f"Abattement (40%) : {abattement:.2f} €")
+        self.store_info(f"Base imposable après abattement : {self.base_imposable:.2f} €")
 
-        # Stockage des résultats dans la dataclass
         self.log_data.abattement = abattement
         self.log_data.base_imposable = self.base_imposable
 
@@ -139,16 +138,15 @@ class DividendesSASU(Dividendes):
             # Application des tranches d'impôt sur le revenu (IR)
             impots_ir = calcul_impots_IR(self.config_yaml["tranches_IR"], self.base_imposable)
             impots_ir = round(impots_ir)
-            self.store_info(f"Imposition via barème progressif pour SASU : {impots_ir} €")
-            self.log_data.impots_ir = impots_ir  # Stocker impôts IR
+            self.store_info(f"Imposition via barème progressif pour SASU : {impots_ir:.2f} €")
+            self.log_data.impots_ir = impots_ir
 
             # Imposition totale en tenant compte de la CSG déductible
             self.imposition_totale = impots_ir + prelevements_sociaux_total - self.csg_deductible_amount
             self.dividendes_net = round(self.dividendes_verses - self.imposition_totale)
 
-            self.store_info(f"Imposition totale (barème) : {self.imposition_totale} €")
-            self.store_info(f"Dividendes nets (barème) pour SASU : {self.dividendes_net} €")
+            self.store_info(f"Imposition totale (barème) : {self.imposition_totale:.2f} €")
+            self.store_info(f"Dividendes nets (barème) pour SASU : {self.dividendes_net:.2f} €")
 
-            # Stockage dans la dataclass
             self.log_data.imposition_totale = self.imposition_totale
             self.log_data.dividendes_net = self.dividendes_net

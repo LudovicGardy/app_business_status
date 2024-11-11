@@ -14,7 +14,6 @@ class ImpotSociete(ABC):
         self.resultat_net_avant_impot = resultat_net_avant_impot
         self.type_societe = type_societe
 
-        # Appel à la méthode abstraite pour le calcul de l'IS
         self.calcul_impot()
 
     @abstractmethod

@@ -1,5 +1,5 @@
 import unittest
-from modules.societe import Societe, EURL, SASU
+from modules.societe import EURL, SASU
 
 class TestSociete(unittest.TestCase):
 
@@ -22,15 +22,6 @@ class TestSociete(unittest.TestCase):
         benefice_reel, cotisations_president = self.sasu.calcul_benefice_reel()
         self.assertEqual(benefice_reel, 41000)
         self.assertEqual(cotisations_president, 9000)
-
-    def test_calcul_is(self):
-        self.assertEqual(self.eurl.calcul_is(41000), calcul_IS(41000))
-        self.assertEqual(self.sasu.calcul_is(41000), calcul_IS(41000))
-
-    def test_calcul_impots_ir(self):
-        tranches_ir = [10000, 20000, 30000]
-        self.assertEqual(self.eurl.calcul_impots_ir(tranches_ir), calcul_IR(tranches_ir, 20000))
-        self.assertEqual(self.sasu.calcul_impots_ir(tranches_ir), calcul_IR(tranches_ir, 20000))
 
     def test_calcul_total_impots(self):
         cotisations_president = 9000

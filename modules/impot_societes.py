@@ -1,51 +1,25 @@
-from abc import ABC, abstractmethod
-import yaml
+def calcul_IS(benefice):
+    """
+    Calcule l'IS (Impôt sur les Sociétés) en fonction des tranches.
+    Tranches IS :
+        - 15% jusqu'à 42 500 €
+        - 25% au-delà de 42 500 €
 
-class ImpotSociete(ABC):
-    def __init__(
-        self,
-        resultat_net_avant_impot: float,
-        type_societe: str,
-    ):
-        with open("config/config.yaml", "r") as file:
-            self.config_yaml = yaml.safe_load(file)
+    Args:
+        benefice (float): Le bénéfice imposable en euros.
 
-        print("\n### Calcul de l'impôt sur les sociétés\n-------------------------")
-        self.resultat_net_avant_impot = resultat_net_avant_impot
-        self.type_societe = type_societe
+    Returns:
+        float: Le montant total de l'IS.
+    """
+    tranche1_limite = 42500  # Limite de la première tranche
+    taux_tranche1 = 0.15  # Taux de la première tranche (15%)
+    taux_tranche2 = 0.25  # Tau de la deuxième tranche (25%)
 
-        # Appel à la méthode abstraite pour le calcul de l'IS
-        self.calcul_impot()
+    if benefice <= tranche1_limite:
+        is_total = benefice * taux_tranche1
+    else:
+        is_tranche1 = tranche1_limite * taux_tranche1
+        is_tranche2 = (benefice - tranche1_limite) * taux_tranche2
+        is_total = is_tranche1 + is_tranche2
 
-    @abstractmethod
-    def calcul_impot(self):
-        """Méthode à implémenter pour le calcul de l'impôt en fonction du type de société."""
-        pass
-
-class ImpotSocieteSASU(ImpotSociete):
-    def calcul_impot(self):
-        """Calcul de l'impôt sur les sociétés pour une SASU selon les tranches IS."""
-        tranches = self.config_yaml["SASU"]["tranches_IS"]
-        self.impot_a_payer = 0
-        for tranche in tranches:
-            min_val, max_val, taux = tranche
-            max_val = max_val if max_val != 'inf' else float('inf')  # Gestion de 'inf' dans le YAML
-            if self.resultat_net_avant_impot > min_val:
-                taxable_income = min(self.resultat_net_avant_impot, max_val) - min_val
-                self.impot_a_payer += taxable_income * taux / 100
-        self.impot_a_payer = round(self.impot_a_payer)
-        print(f"Impôt sur les sociétés (SASU) : {self.impot_a_payer} €")
-
-class ImpotSocieteEURL(ImpotSociete):
-    def calcul_impot(self):
-        """Calcul de l'impôt sur les sociétés pour une EURL."""
-        tranches = self.config_yaml["SASU"]["tranches_IS"]  # Même tranches IS pour l'exemple
-        self.impot_a_payer = 0
-        for tranche in tranches:
-            min_val, max_val, taux = tranche
-            max_val = max_val if max_val != 'inf' else float('inf')
-            if self.resultat_net_avant_impot > min_val:
-                taxable_income = min(self.resultat_net_avant_impot, max_val) - min_val
-                self.impot_a_payer += taxable_income * taux / 100
-        self.impot_a_payer = round(self.impot_a_payer)
-        print(f"Impôt sur les sociétés (EURL) : {self.impot_a_payer} €")
+    return round(is_total, 2)

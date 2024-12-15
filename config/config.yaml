@@ -13,7 +13,7 @@ TVA:
 SASU:
   salaires:
     charges_sociales:
-      taux: 85  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.85 = 55500€
+      taux_cotisation: 70  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.85 = 55500€
       taux_inverse_approximatif: 46  # (%) si l'entreprise verse 55500€, le salarié touchera 55500 - 55500 * 0.46 = 29970€
   dividendes:
     prelevements_sociaux: 
@@ -24,11 +24,11 @@ SASU:
     TMI: 12.8  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
     abattement: 40  # (%)
   tranches_IS:
-      - [0, 38120, 15]  # min (€), max (€), taux (%)
-      - [38120, inf, 25]  # min (€), max (€), taux (%)
+      - [0, 42500, 15]  # min (€), max (€), taux (%)
+      - [42500, inf, 25]  # min (€), max (€), taux (%)
 EURL:
   salaires:
     charges_sociales:
-    taux: 45  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.45 = 43500€
-    taux_inverse_approximatif: 31  # (%) si l'entreprise verse 43500€, le salarié touchera 43500 - 43500 * 0.31 = 30015€
+      taux_cotisation: 42  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.45 = 43500€
+      taux_inverse_approximatif: 31  # (%) si l'entreprise verse 43500€, le salarié touchera 43500 - 43500 * 0.31 = 30015€
 

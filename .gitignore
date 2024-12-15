@@ -20,3 +20,9 @@ Shared_scripts.pyproj
 Shared_scripts.sln
 start_demo_extended.ipynb
 app.py
+
+
+### Tests and coverage
+.coverage*
+coverage.xml
+junit.xml

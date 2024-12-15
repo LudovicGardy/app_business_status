@@ -20,47 +20,42 @@ with open("config/config.yaml", "r") as file:
 
 class StreamlitWidgets:
     def __init__(self):
-        self.status_possibles = ["SASU", "EURL"]
-        self.fiscalites_possibles = ["flat_tax", "bareme"]
+        self.set_streamlit_widgets()
 
-        tabs = st.tabs(["⚙️ Configurations", "📊 Résultats & détails"])
-
-        with tabs[0]:
-            self.set_streamlit_widgets()
-        with tabs[1]:
-            st.write("### Détails des calculs")
 
     def set_streamlit_widgets(self):
-        st.write("### Résultats annuels de la société")
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            self.chiffre_affaire_HT = st.number_input(
-                "Chiffre d'affaires HT (€)",
-                min_value=0,
-                value=200000,
-                step=1000,
-            )
-        with col2:
-            self.charges_deductibles = st.number_input(
-                "Charges déductibles (€)",
-                min_value=0,
-                value=st.session_state.get("charges_deductibles", 50000),
-                step=1000,
-            )
-        with col3:
-            self.remuneration_president = st.number_input(
-                "Rémunération président (€)",
-                min_value=0,
-                value=st.session_state.get("remuneration president", 20000),
-                step=1000,
-            )
+        st.sidebar.write("### Résultats annuels de la société")
+        self.chiffre_affaire_HT = st.sidebar.number_input(
+            "Chiffre d'affaires HT (€)",
+            min_value=0,
+            value=200000,
+            step=1000,
+        )
+        self.charges_deductibles = st.sidebar.number_input(
+            "Charges déductibles (€)",
+            min_value=0,
+            value=st.session_state.get("charges_deductibles", 50000),
+            step=1000,
+        )
+        self.remuneration_president = st.sidebar.number_input(
+            "Rémunération président (€)",
+            min_value=0,
+            value=st.session_state.get("remuneration president", 20000),
+            step=1000,
+        )
 class Home(StreamlitWidgets):
     def __init__(self):
         super().__init__()
         self.get_results()
-        self.plot_results()
-        self.display_results()
+
+        tabs = st.tabs(["⚙️ Graphique", "📊 Tableau"])
+        with tabs[0]:
+            st.write("## Graphique comparatif des résultats")
+            self.plot_results()
+        with tabs[1]:
+            st.write("## Tableau comparatif des résultats")
+            self.display_results()
+
 
     def get_results(self):
 
@@ -97,7 +92,7 @@ class Home(StreamlitWidgets):
         """
         Affiche les résultats des calculs pour les deux types de sociétés sous forme de tableau comparatif avec les résultats en colonnes.
         """
-        # Réorganiser les données pour avoir les résultats en colonnes
+
         data = {
             "Indicateurs": [
                 "Chiffre d'affaires prévisionnel",
@@ -111,45 +106,40 @@ class Home(StreamlitWidgets):
                 "TOTAL COTISATIONS ET IMPÔTS",
                 "Salaire net (post-IR)",
                 "Reste bénéfice net à distribuer (post-IS)",
-                "Divdendes net",
+                "[Optionnel] Divdendes net à la flat tax",
             ],
             "EURL": [
-                self.eurl.ca_previsionnel,
-                self.eurl.charges,
-                self.eurl.remuneration_president,
-                self.eurl.results['EURL']['cotisations_president'],
-                self.eurl.charges + self.eurl.remuneration_president + self.eurl.results['EURL']['cotisations_president'],
-                self.eurl.results['EURL']['benefice_reel'],
-                self.eurl.results['EURL']['impots_ir'],
-                self.eurl.results['EURL']['impots_is'],
-                self.eurl.results['EURL']['total_impots'],
-                self.eurl.remuneration_president - self.eurl.results['EURL']['impots_ir'],
-                self.eurl.results['EURL']['benefice_reel'] - self.eurl.results['EURL']['impots_is'],
-                np.nan,
+                f'<span style="color:blue">{self.eurl.ca_previsionnel}</span>',
+                f'<span style="color:blue">{self.eurl.charges}</span>',
+                f'<span style="color:blue">{self.eurl.remuneration_president}</span>',
+                f'<span style="color:red">{self.eurl.results["EURL"]["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.eurl.charges + self.eurl.remuneration_president + self.eurl.results["EURL"]["cotisations_president"]}</span>',
+                f'<span style="color:blue">{self.eurl.results["EURL"]["benefice_reel"]}</span>',
+                f'<span style="color:red">{self.eurl.results["EURL"]["impots_ir"]}</span>',
+                f'<span style="color:red">{self.eurl.results["EURL"]["impots_is"]}</span>',
+                f'<span style="color:red">{self.eurl.results["EURL"]["total_impots"]}</span>',
+                f'<span style="color:green">{self.eurl.remuneration_president - self.eurl.results["EURL"]["impots_ir"]}</span>',
+                f'<span style="color:blue">{self.eurl.results["EURL"]["benefice_reel"] - self.eurl.results["EURL"]["impots_is"]}</span>',
+                f'<span style="color:green">{None}</span>',
             ],
             "SASU": [
-                self.sasu.ca_previsionnel,
-                self.sasu.charges,
-                self.sasu.remuneration_president,
-                self.sasu.results['SASU']['cotisations_president'],
-                self.sasu.charges + self.sasu.remuneration_president + self.sasu.results['SASU']['cotisations_president'],
-                self.sasu.results['SASU']['benefice_reel'],
-                self.sasu.results['SASU']['impots_ir'],
-                self.sasu.results['SASU']['impots_is'],
-                self.sasu.results['SASU']['total_impots'],
-                self.sasu.remuneration_president - self.sasu.results['SASU']['impots_ir'],
-                self.sasu.results['SASU']['benefice_reel'] - self.sasu.results['SASU']['impots_is'],
-                (self.sasu.results['SASU']['benefice_reel'] - self.sasu.results['SASU']['impots_is']) * 0.7,    
+                f'<span style="color:blue">{self.sasu.ca_previsionnel}</span>',
+                f'<span style="color:blue">{self.sasu.charges}</span>',
+                f'<span style="color:blue">{self.sasu.remuneration_president}</span>',
+                f'<span style="color:red">{self.sasu.results["SASU"]["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.sasu.charges + self.sasu.remuneration_president + self.sasu.results["SASU"]["cotisations_president"]}</span>',
+                f'<span style="color:blue">{self.sasu.results["SASU"]["benefice_reel"]}</span>',
+                f'<span style="color:red">{self.sasu.results["SASU"]["impots_ir"]}</span>',
+                f'<span style="color:red">{self.sasu.results["SASU"]["impots_is"]}</span>',
+                f'<span style="color:red">{self.sasu.results["SASU"]["total_impots"]}</span>',
+                f'<span style="color:green">{self.sasu.remuneration_president - self.sasu.results["SASU"]["impots_ir"]}</span>',
+                f'<span style="color:blue">{self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]}</span>',
+                f'<span style="color:green">{(self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]) * 0.7}</span>',
             ]
         }
 
-        # Convertir les données en DataFrame Pandas
         df_results = pd.DataFrame(data)
-
-        # Afficher le tableau comparatif dans Streamlit
-        st.write("## Tableau comparatif des résultats")
-        st.table(df_results)  # Pour un tableau statique avec alignement automatique
-
+        st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
             
     def plot_results(self):
         """

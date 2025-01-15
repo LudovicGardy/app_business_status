@@ -38,11 +38,12 @@ class StreamlitWidgets:
             step=1000,
         )
         self.remuneration_president = st.sidebar.number_input(
-            "Rémunération président (€)",
+            "Rémunération annuelle (super brut, €)",
             min_value=0,
             value=st.session_state.get("remuneration president", 20000),
             step=1000,
         )
+
 class Home(StreamlitWidgets):
     def __init__(self):
         super().__init__()
@@ -93,6 +94,12 @@ class Home(StreamlitWidgets):
         Affiche les résultats des calculs pour les deux types de sociétés sous forme de tableau comparatif avec les résultats en colonnes.
         """
 
+        self.status_juridique = st.selectbox(
+            label="Status juridique", 
+            options=["EURL", "SASU", "EURL & SASU"], 
+            index=0
+        )
+
         data = {
             "Indicateurs": [
                 "Chiffre d'affaires prévisionnel",
@@ -138,9 +145,27 @@ class Home(StreamlitWidgets):
             ]
         }
 
-        df_results = pd.DataFrame(data)
+        if self.status_juridique == "EURL":
+            df_results = pd.DataFrame(data)[["Indicateurs", "EURL"]]
+            salaire_net_post_ir = self.eurl.remuneration_president - self.eurl.results["EURL"]["impots_ir"]
+            dividendes_net_flat_tax = 0
+        elif self.status_juridique == "SASU":
+            df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
+            salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["SASU"]["impots_ir"]
+            dividendes_net_flat_tax = (self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]) * 0.7
+        else:
+            df_results = pd.DataFrame(data)
+            salaire_net_post_ir = np.nan
+            dividendes_net_flat_tax = np.nan
+
+        reste_benefice_index = data["Indicateurs"].index("Reste bénéfice net à distribuer (post-IS)")
+        if float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0 or float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0:
+            st.warning("La société n'a pas suffisamment de fonds à distribuer.")
+
         st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
-            
+
+        st.write(f"Total disponible pour le président: {salaire_net_post_ir + dividendes_net_flat_tax}")
+
     def plot_results(self):
         """
         Interactive barplot using Plotly to compare values (income and taxes) for SASU and EURL.

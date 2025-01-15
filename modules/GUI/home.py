@@ -67,12 +67,12 @@ class Home(StreamlitWidgets):
             taux_cotisation=config_yaml["EURL"]['salaires']['charges_sociales']['taux_cotisation'],
         )
 
-        self.eurl.results['EURL']['benefice_reel'], self.eurl.results['EURL']['cotisations_president'] = self.eurl.calcul_benefice_reel()
-        self.eurl.results['EURL']['impots_ir'] = self.eurl.calcul_impots_ir(tranches_ir=config_yaml['tranches_IR'])
-        self.eurl.results['EURL']['impots_is'] = self.eurl.calcul_is(self.eurl.results['EURL']['benefice_reel'])
-        self.eurl.results['EURL']['total_impots'] = self.eurl.calcul_total_impots(self.eurl.results['EURL']['cotisations_president'], 
-                                                                self.eurl.results['EURL']['impots_ir'], 
-                                                                self.eurl.results['EURL']['impots_is'])
+        self.eurl.results['benefice_reel'], self.eurl.results['cotisations_president'] = self.eurl.calcul_benefice_reel()
+        self.eurl.results['impots_ir'] = self.eurl.calcul_impots_ir(tranches_ir=config_yaml['tranches_IR'])
+        self.eurl.results['impots_is'] = self.eurl.calcul_is(self.eurl.results['benefice_reel'])
+        self.eurl.results['total_impots'] = self.eurl.calcul_total_impots(self.eurl.results['cotisations_president'], 
+                                                                self.eurl.results['impots_ir'], 
+                                                                self.eurl.results['impots_is'])
 
         self.sasu = SASU(
             ca_previsionnel=self.chiffre_affaire_HT,
@@ -81,12 +81,12 @@ class Home(StreamlitWidgets):
             taux_cotisation=config_yaml["SASU"]['salaires']['charges_sociales']['taux_cotisation'],
         )
 
-        self.sasu.results['SASU']['benefice_reel'], self.sasu.results['SASU']['cotisations_president'] = self.sasu.calcul_benefice_reel()
-        self.sasu.results['SASU']['impots_ir'] = self.sasu.calcul_impots_ir(tranches_ir=config_yaml['tranches_IR'])
-        self.sasu.results['SASU']['impots_is'] = self.sasu.calcul_is(self.sasu.results['SASU']['benefice_reel'])
-        self.sasu.results['SASU']['total_impots'] = self.sasu.calcul_total_impots(self.sasu.results['SASU']['cotisations_president'], 
-                                                                self.sasu.results['SASU']['impots_ir'], 
-                                                                self.sasu.results['SASU']['impots_is'])
+        self.sasu.results['benefice_reel'], self.sasu.results['cotisations_president'] = self.sasu.calcul_benefice_reel()
+        self.sasu.results['impots_ir'] = self.sasu.calcul_impots_ir(tranches_ir=config_yaml['tranches_IR'])
+        self.sasu.results['impots_is'] = self.sasu.calcul_is(self.sasu.results['benefice_reel'])
+        self.sasu.results['total_impots'] = self.sasu.calcul_total_impots(self.sasu.results['cotisations_president'], 
+                                                                self.sasu.results['impots_ir'], 
+                                                                self.sasu.results['impots_is'])
 
 
     def display_results(self):
@@ -119,40 +119,40 @@ class Home(StreamlitWidgets):
                 f'<span style="color:blue">{self.eurl.ca_previsionnel}</span>',
                 f'<span style="color:blue">{self.eurl.charges}</span>',
                 f'<span style="color:blue">{self.eurl.remuneration_president}</span>',
-                f'<span style="color:red">{self.eurl.results["EURL"]["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.eurl.charges + self.eurl.remuneration_president + self.eurl.results["EURL"]["cotisations_president"]}</span>',
-                f'<span style="color:blue">{self.eurl.results["EURL"]["benefice_reel"]}</span>',
-                f'<span style="color:red">{self.eurl.results["EURL"]["impots_ir"]}</span>',
-                f'<span style="color:red">{self.eurl.results["EURL"]["impots_is"]}</span>',
-                f'<span style="color:red">{self.eurl.results["EURL"]["total_impots"]}</span>',
-                f'<span style="color:green">{self.eurl.remuneration_president - self.eurl.results["EURL"]["impots_ir"]}</span>',
-                f'<span style="color:blue">{self.eurl.results["EURL"]["benefice_reel"] - self.eurl.results["EURL"]["impots_is"]}</span>',
+                f'<span style="color:red">{self.eurl.results["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.eurl.charges + self.eurl.remuneration_president + self.eurl.results["cotisations_president"]}</span>',
+                f'<span style="color:blue">{self.eurl.results["benefice_reel"]}</span>',
+                f'<span style="color:red">{self.eurl.results["impots_ir"]}</span>',
+                f'<span style="color:red">{self.eurl.results["impots_is"]}</span>',
+                f'<span style="color:red">{self.eurl.results["total_impots"]}</span>',
+                f'<span style="color:green">{self.eurl.remuneration_president - self.eurl.results["impots_ir"]}</span>',
+                f'<span style="color:blue">{self.eurl.results["benefice_reel"] - self.eurl.results["impots_is"]}</span>',
                 f'<span style="color:green">{None}</span>',
             ],
             "SASU": [
                 f'<span style="color:blue">{self.sasu.ca_previsionnel}</span>',
                 f'<span style="color:blue">{self.sasu.charges}</span>',
                 f'<span style="color:blue">{self.sasu.remuneration_president}</span>',
-                f'<span style="color:red">{self.sasu.results["SASU"]["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.sasu.charges + self.sasu.remuneration_president + self.sasu.results["SASU"]["cotisations_president"]}</span>',
-                f'<span style="color:blue">{self.sasu.results["SASU"]["benefice_reel"]}</span>',
-                f'<span style="color:red">{self.sasu.results["SASU"]["impots_ir"]}</span>',
-                f'<span style="color:red">{self.sasu.results["SASU"]["impots_is"]}</span>',
-                f'<span style="color:red">{self.sasu.results["SASU"]["total_impots"]}</span>',
-                f'<span style="color:green">{self.sasu.remuneration_president - self.sasu.results["SASU"]["impots_ir"]}</span>',
-                f'<span style="color:blue">{self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]}</span>',
-                f'<span style="color:green">{(self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]) * 0.7}</span>',
+                f'<span style="color:red">{self.sasu.results["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.sasu.charges + self.sasu.remuneration_president + self.sasu.results["cotisations_president"]}</span>',
+                f'<span style="color:blue">{self.sasu.results["benefice_reel"]}</span>',
+                f'<span style="color:red">{self.sasu.results["impots_ir"]}</span>',
+                f'<span style="color:red">{self.sasu.results["impots_is"]}</span>',
+                f'<span style="color:red">{self.sasu.results["total_impots"]}</span>',
+                f'<span style="color:green">{self.sasu.remuneration_president - self.sasu.results["impots_ir"]}</span>',
+                f'<span style="color:blue">{self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]}</span>',
+                f'<span style="color:green">{(self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7}</span>',
             ]
         }
 
         if self.status_juridique == "EURL":
             df_results = pd.DataFrame(data)[["Indicateurs", "EURL"]]
-            salaire_net_post_ir = self.eurl.remuneration_president - self.eurl.results["EURL"]["impots_ir"]
+            salaire_net_post_ir = self.eurl.remuneration_president - self.eurl.results["impots_ir"]
             dividendes_net_flat_tax = 0
         elif self.status_juridique == "SASU":
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
-            salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["SASU"]["impots_ir"]
-            dividendes_net_flat_tax = (self.sasu.results["SASU"]["benefice_reel"] - self.sasu.results["SASU"]["impots_is"]) * 0.7
+            salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["impots_ir"]
+            dividendes_net_flat_tax = (self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7
         else:
             df_results = pd.DataFrame(data)
             salaire_net_post_ir = np.nan
@@ -171,8 +171,8 @@ class Home(StreamlitWidgets):
         Interactive barplot using Plotly to compare values (income and taxes) for SASU and EURL.
         """
         # Extraire les résultats pour les deux statuts
-        sasu_results = self.sasu.results["SASU"]
-        eurl_results = self.eurl.results["EURL"]
+        sasu_results = self.sasu.results
+        eurl_results = self.eurl.results
 
         # Données à comparer
         labels = ["Bénéfice réel", "Cotisations président", "Impôts IR", "Impôts IS", "Total impôts"]

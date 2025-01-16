@@ -94,9 +94,12 @@ class Home(StreamlitWidgets):
         Affiche les résultats des calculs pour les deux types de sociétés sous forme de tableau comparatif avec les résultats en colonnes.
         """
 
+        salaire_net_post_ir = np.nan
+        dividendes_net_flat_tax = np.nan
+
         self.status_juridique = st.selectbox(
             label="Status juridique", 
-            options=["EURL", "SASU", "EURL & SASU"], 
+            options=["EURL", "SASU"], 
             index=0
         )
 
@@ -153,10 +156,6 @@ class Home(StreamlitWidgets):
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
             salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["impots_ir"]
             dividendes_net_flat_tax = (self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7
-        else:
-            df_results = pd.DataFrame(data)
-            salaire_net_post_ir = np.nan
-            dividendes_net_flat_tax = np.nan
 
         reste_benefice_index = data["Indicateurs"].index("Reste bénéfice net à distribuer (post-IS)")
         if float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0 or float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0:

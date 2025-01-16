@@ -94,12 +94,9 @@ class Home(StreamlitWidgets):
         Affiche les résultats des calculs pour les deux types de sociétés sous forme de tableau comparatif avec les résultats en colonnes.
         """
 
-        salaire_net_post_ir = np.nan
-        dividendes_net_flat_tax = np.nan
-
         self.status_juridique = st.selectbox(
             label="Status juridique", 
-            options=["EURL", "SASU"], 
+            options=["EURL", "SASU", "SASU & EURL"], 
             index=0
         )
 
@@ -156,14 +153,23 @@ class Home(StreamlitWidgets):
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
             salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["impots_ir"]
             dividendes_net_flat_tax = (self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7
-
-        reste_benefice_index = data["Indicateurs"].index("Reste bénéfice net à distribuer (post-IS)")
-        if float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0 or float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0:
-            st.warning("La société n'a pas suffisamment de fonds à distribuer.")
+        else:
+            df_results = pd.DataFrame(data)
+            salaire_net_post_ir = np.nan
+            dividendes_net_flat_tax = np.nan
 
         st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
 
-        st.write(f"Total disponible pour le président: {salaire_net_post_ir + dividendes_net_flat_tax}")
+        with st.container(border=True):
+            st.write("Total NET disponible pour le président après toutes les charges, y compris IR")
+            if self.status_juridique == "EURL" or self.status_juridique == "SASU":
+                reste_benefice_index = data["Indicateurs"].index("Reste bénéfice net à distribuer (post-IS)")
+                if float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0 or float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0:
+                    st.warning("La société n'a pas suffisamment de fonds à distribuer.")
+                else:
+                    st.success(f"{salaire_net_post_ir + dividendes_net_flat_tax} €")
+            else:
+                st.info("Veuillez sélectionner un status juridique pour afficher le total disponible pour le président.")
 
     def plot_results(self):
         """

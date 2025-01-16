@@ -18,39 +18,21 @@ class About:
         st.write("""
             ### À propos de l'application
 
-            Bienvenue sur notre application de visualisation et d'optimisation des revenus pour les présidents d'entreprises SASU et EURL. Cette application a été conçue pour aider les entrepreneurs à mieux comprendre et optimiser leurs revenus en fonction de divers paramètres financiers et fiscaux.
+            Cette application a été conçue pour aider les entrepreneurs et les dirigeants d'entreprise à comparer les impacts financiers des statuts juridiques SASU et EURL. 
+            En fournissant des simulations détaillées et des visualisations graphiques, elle permet de prendre des décisions éclairées sur la structure juridique la plus avantageuse.
 
-            #### Fonctionnalités de l'application
+            #### Fonctionnalités principales :
+            - **Comparaison des salaires nets** : Analyse des salaires nets après impôts pour les deux statuts.
+            - **Simulation des dividendes** : Calcul des dividendes nets après impôts.
+            - **Visualisation des résultats** : Graphiques interactifs et tableaux comparatifs pour une meilleure compréhension des résultats.
 
-            Notre application vous permet de :
+            #### Pourquoi utiliser cette application ?
+            - **Optimisation fiscale** : Trouver la structure juridique qui maximise les revenus nets.
+            - **Prise de décision éclairée** : Basée sur des données financières précises et des simulations réalistes.
+            - **Gain de temps** : Simplifie le processus complexe de comparaison des statuts juridiques.
 
-            1. **Choisir le statut social :**
-                - **EURL (Entreprise Unipersonnelle à Responsabilité Limitée)**
-                - **SASU (Société par Actions Simplifiée Unipersonnelle)**
-
-            2. **Simuler les revenus :**
-                - **Dividendes**
-                - **Salaires**
-                - **Proportion des revenus** (combinaison de dividendes et salaires)
-
-            3. **Sélectionner le choix d'imposition :**
-                - **Impôt sur le revenu (IR)**
-                - **Impôt sur les sociétés (IS)**
-                - **Flat tax** (prélèvement forfaitaire unique)
-
-            4. **Saisir le chiffre d'affaires :**
-                - Estimez vos revenus en fonction de votre chiffre d'affaires annuel.
-
-            5. **Définir le capital social de votre société :**
-                - Impact du capital social sur la fiscalité et les charges sociales.
-
-            6. **Inclure les charges déductibles :**
-                - Prenez en compte les différentes charges déductibles pour une estimation précise de vos revenus nets.
-
-            7. **Choisir ou laisser l'algorithme optimiser :**
-                - Vous pouvez soit choisir manuellement les paramètres, soit laisser l'algorithme définir les options optimales pour maximiser vos revenus.
-
-            """)
+            Nous espérons que cette application vous sera utile et vous aidera à optimiser vos décisions financières.
+        """)
 
     def objectifs(self):
         st.write("""

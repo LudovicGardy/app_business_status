@@ -158,7 +158,8 @@ class Home(StreamlitWidgets):
             salaire_net_post_ir = np.nan
             dividendes_net_flat_tax = np.nan
 
-        st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
+        with st.container(border=True):
+            st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
 
         with st.container(border=True):
             st.write("Total NET disponible pour le président après toutes les charges, y compris IR")

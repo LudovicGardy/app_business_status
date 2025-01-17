@@ -148,27 +148,34 @@ class Home(StreamlitWidgets):
         if self.status_juridique == "EURL":
             df_results = pd.DataFrame(data)[["Indicateurs", "EURL"]]
             salaire_net_post_ir = self.eurl.remuneration_president - self.eurl.results["impots_ir"]
+            reste_benefice_net_a_distribuer = self.eurl.results["benefice_reel"] - self.eurl.results["impots_is"]
             dividendes_net_flat_tax = 0
+            msg_label = "Reste dans la société"
         elif self.status_juridique == "SASU":
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
             salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["impots_ir"]
+            reste_benefice_net_a_distribuer = 0
             dividendes_net_flat_tax = (self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7
+            msg_label = "Reste dans la société après versement des dividendes"
         else:
             df_results = pd.DataFrame(data)
             salaire_net_post_ir = np.nan
+            reste_benefice_net_a_distribuer = np.nan
             dividendes_net_flat_tax = np.nan
 
         with st.container(border=True):
             st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
 
         with st.container(border=True):
-            st.write("Total NET disponible pour le président après toutes les charges, y compris IR")
             if self.status_juridique == "EURL" or self.status_juridique == "SASU":
                 reste_benefice_index = data["Indicateurs"].index("Reste bénéfice net à distribuer (post-IS)")
                 if float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0 or float(df_results[self.status_juridique][reste_benefice_index].split(">")[1].split("<")[0]) < 0:
                     st.warning("La société n'a pas suffisamment de fonds à distribuer.")
                 else:
-                    st.success(f"{salaire_net_post_ir + dividendes_net_flat_tax} €")
+                    st.write("Total NET disponible pour le président après toutes les charges, y compris IR")
+                    st.success(f"{np.round(salaire_net_post_ir + dividendes_net_flat_tax,2)} €")
+                    st.write(msg_label)
+                    st.info(f"{np.round(reste_benefice_net_a_distribuer,2)} €")
             else:
                 st.info("Veuillez sélectionner un status juridique pour afficher le total disponible pour le président.")
 

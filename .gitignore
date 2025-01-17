@@ -23,6 +23,6 @@ app.py
 
 
 ### Tests and coverage
-.coverage*
+.coverage
 coverage.xml
 junit.xml

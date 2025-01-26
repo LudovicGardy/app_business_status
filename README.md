@@ -67,12 +67,23 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
         cd [path-to-app-folder-containing-Dockerfile]
         ```
 
-3. **Build and start the containers**
-    ```bash
-    docker-compose up --build
-    ```
+3. **Build the containers**
+    - For multiple containers:
+        ```bash
+        docker-compose up --build
+        ```
+    - For a single container:
+        ```bash
+        docker build -t my-app-title .
+        ```
 
-    - The application will be accessible at `localhost:8501`.
+4. **Run the containers**
+    - For multiple containers:
+        ```bash
+        docker run -p 8501:8501 my-app-title
+        ```
+
+    - The application will be accessible at `http://localhost:8501`.
 
     - ⚠️ If you encounter issues with `pymssql`, adjust its version in `requirements.txt` or remove it before building the Docker image.
 

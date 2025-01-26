@@ -82,10 +82,12 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
         ```bash
         docker run -p 8501:8501 my-app-title
         ```
-
     - The application will be accessible at `http://localhost:8501`.
 
+5. **Other notes**
+
     - ⚠️ If you encounter issues with `pymssql`, adjust its version in `requirements.txt` or remove it before building the Docker image.
+    - ⚠️ If you encounter issues with `pyspark`, you might need to uninstall and reinstall it. Additionally, ensure that Java is installed and properly configured on your system, as `pyspark` depends on Java. You can install Java by following the instructions on the [official Java website](https://www.java.com/en/download/help/download_options.html). Make sure to set the `JAVA_HOME` environment variable to point to your Java installation directory.
 
 ## 👤 Author
 - LinkedIn: [Ludovic Gardy](https://www.linkedin.com/in/ludovic-gardy/)

@@ -38,7 +38,7 @@ class StreamlitWidgets:
             step=1000,
         )
         self.remuneration_president = st.sidebar.number_input(
-            "Rémunération annuelle (super brut, €)",
+            "Rémunération annuelle (€)",
             min_value=0,
             value=st.session_state.get("remuneration president", 20000),
             step=1000,

@@ -8,7 +8,7 @@
 
 Here's a tool that allows you to analyze and optimize your financial decisions based on various parameters like annual turnover, deductible expenses, and dividend distribution. It's ideal for entrepreneurs and business owners who need to make informed decisions about their company's legal structure.
 
-🌐 Access the app and start your analysis now at [https://business-status.app](https://business-status-583ac98f38cb.herokuapp.com/).
+🌐 Access the app and start your analysis now at [https://choisirmasociete.sotisanalytics.com](https://choisirmasociete.sotisanalytics.com).
 
 ![Image1](images/image1.2.png)
 
@@ -75,7 +75,7 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
         cd [path-to-app-folder-containing-Dockerfile]
         ```
 
-3. **Build the image (if does not already exit)**
+3. **Build the image (if does not already exist)**
     - For multiple containers:
         ```bash
         docker-compose up --build

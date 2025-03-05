@@ -8,7 +8,7 @@
 
 Here's a tool that allows you to analyze and optimize your financial decisions based on various parameters like annual turnover, deductible expenses, and dividend distribution. It's ideal for entrepreneurs and business owners who need to make informed decisions about their company's legal structure.
 
-🌐 Access the app and start your analysis now at [https://choisirmasociete.sotisanalytics.com](https://choisirmasociete.sotisanalytics.com).
+🌐 Access the app and start your analysis now at [https://choisirmasociete.sotisanalytics.com](https://choisirmasociete.sotisai.com).
 
 ![Image1](images/image1.2.png)
 

@@ -1,5 +1,5 @@
 import pytest
-from modules.impot_societes import calcul_IS
+from src.impot_societes import calcul_IS
 
 def test_calcul_IS_tranche1():
     assert calcul_IS(30000) == 4500.0  # 30000 * 0.15

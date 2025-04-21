@@ -11,7 +11,7 @@ import yaml
 sys.path.append("..")
 sys.path.append("../..")
 
-from modules.societe import EURL, SASU
+from src.societe import EURL, SASU
 
 with open("config/config.yaml", "r") as file:
     config_yaml = yaml.safe_load(file)

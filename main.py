@@ -1,9 +1,9 @@
 import streamlit as st
 
-from modules.config import page_config
-from modules.GUI.about import About
-from modules.GUI.home import Home
-from modules.GUI.ui_components import (
+from src.config import page_config
+from src.GUI.about import About
+from src.GUI.home import Home
+from src.GUI.ui_components import (
     display_sidebar,
     init_page_config,
     init_session_state,

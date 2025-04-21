@@ -1,5 +1,5 @@
 import unittest
-from modules.societe import EURL, SASU
+from src.societe import EURL, SASU
 
 class TestSociete(unittest.TestCase):
 

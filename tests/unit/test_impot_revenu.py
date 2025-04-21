@@ -1,5 +1,5 @@
 import pytest
-from modules.impot_revenu import calcul_IR
+from src.impot_revenu import calcul_IR
 
 def test_calcul_IR_no_tax():
     tranches_ir = [(0, 10000, 0), (10000, 25000, 10), (25000, 50000, 20)]

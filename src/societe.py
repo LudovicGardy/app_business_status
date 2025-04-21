@@ -3,8 +3,8 @@ import numpy as np
 import streamlit as st
 import plotly.express as px
 
-from modules.impot_societes import calcul_IS
-from modules.impot_revenu import calcul_IR
+from src.impot_societes import calcul_IS
+from src.impot_revenu import calcul_IR
 
 class Societe(ABC):
     def __init__(self, ca_previsionnel, charges, remuneration_president, taux_cotisation):

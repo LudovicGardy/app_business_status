@@ -1,19 +1,13 @@
-[tool.poetry]
+[project]
 name = "app-business-status"
 version = "0.1.0"
-description = ""
-authors = ["Ludovic Gardy <ludovic.gardy@gmail.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.13"
-streamlit = "^1.43.1"
-dotenv = "^0.9.9"
-matplotlib = "^3.10.1"
-plotly = "^6.0.0"
-pyyaml = "^6.0.2"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.10.1",
+    "plotly>=6.0.1",
+    "python-dotenv>=1.1.0",
+    "pyyaml>=6.0.2",
+    "streamlit>=1.44.1",
+]

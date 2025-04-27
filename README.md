@@ -14,87 +14,75 @@ Here's a tool that allows you to analyze and optimize your financial decisions b
 
 ---
 
-## Prerequisites
-- Anaconda or Miniconda
-- Docker (for Docker deployment)
+## ⚙️ Setup & Usage
 
----
+You can run the application in two ways:
 
-## ⚒️ Installation
+- **Locally using `uv`**
+- **Using Docker Compose**
 
-### Prerequisites
-- Python 3.11
-- Python libraries
-    ```sh
-    pip install -r requirements.txt
-    ```
+### 🔧 Option 1 — Run Locally with `uv`
 
----
+> `uv` is a fast and modern Python tool that handles virtual environments and dependencies via `pyproject.toml`.
 
-## 📝 Usage
+1. **Install `uv`** (if not already installed)  
+   ```bash
+   curl -Ls https://astral.sh/uv/install.sh | sh
+   ```
 
-### Running without Docker
+2. **Clone the repository**  
+   ```bash
+   git clone https://github.com/LudovicGardy/app_name
+   cd app_folder/
+   ```
 
-1. **Clone the repository and navigate to the directory**
-    ```bash
-    git pull https://github.com/LudovicGardy/business_status
-    cd business_status/app_folder
-    ```
+3. **Create and activate the environment**  
+   ```bash
+   uv venv
+   ```
 
-2. **Environment setup**
-    - Create and/or activate the virtual environment:
-        ```bash
-        conda create -n myenv python=3.11
-        conda activate myenv
-        ```
-        or
-        ```bash
-        source .venv/bin/activate
-        ```
+   - On **macOS/Linux**:
+     ```bash
+     source .venv/bin/activate
+     ```
 
-3. **Launch the Streamlit App**
-    - Run the Streamlit application:
-        ```bash
-        streamlit run main.py
-        ```
+   - On **Windows** (PowerShell):
+     ```powershell
+     .venv\Scripts\Activate.ps1
+     ```
 
----
+4. **(Optional) If the virtual environment doesn't behave properly**
 
-### Running with Docker
+   Sometimes, on macOS in particular, the environment might be missing some tooling (like `pip`). You can try the following fixes:
 
-1. **Prepare Docker environment**
-    - Ensure Docker is installed and running on your system.
+   ```bash
+   .venv/bin/python -m ensurepip --upgrade
+   .venv/bin/python -m pip install --upgrade pip
+   # Optional: Only if you need to use Jupyter notebooks
+   .venv/bin/python -m pip install ipykernel -U --force-reinstall
+   ```
 
-2. **Navigate to project directory**
-    - For multiple containers:
-        ```bash
-        cd [path-to-app-folder-containing-docker-compose.yml]
-        ```
-    - For a single container:
-        ```bash
-        cd [path-to-app-folder-containing-Dockerfile]
-        ```
+5. **Launch the app**  
+   ```bash
+   streamlit run main.py
+   ```
 
-3. **Build the image (if does not already exist)**
-    - For multiple containers:
-        ```bash
-        docker-compose up --build
-        ```
-    - For a single container:
-        ```bash
-        docker build -t my-app-title .
-        ```
+### 🐳 Option 2 — Run with Docker Compose
 
-4. **Run the containers**
-    - For multiple containers:
-        ```bash
-        docker run -p 8501:8501 my-app-title
-        ```
-    - The application will be accessible at `http://localhost:8501`.
+1. **Make sure Docker and Docker Compose are installed and running**
 
-5. **Other notes**
-    - ⚠️ If you encounter issues with `pymssql`, adjust its version in `requirements.txt` or remove it before building the Docker image.
-    - ⚠️ If you encounter issues with `pyspark`, you might need to uninstall and reinstall it. Additionally, ensure that Java is installed and properly configured on your system, as `pyspark` depends on Java. You can install Java by following the instructions on the [official Java website](https://www.java.com/en/download/help/download_options.html). Make sure to set the `JAVA_HOME` environment variable to point to your Java installation directory.
+2. **Go to the project directory**
+   ```bash
+   cd path/to/app_folder
+   ```
+
+3. **Build and start the app**
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the app**
+   Open your browser at: [http://localhost:8502](http://localhost:8502)
 
 ---
 

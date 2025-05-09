@@ -54,9 +54,7 @@ def page_config():
         "author": "Sotis AI",
         "markdown": """<style>.css-10pw50 {visibility:hidden;}</style>""",
         "page_description": """
-        Une application conçue pour fournir des informations claires sur le choix entre deux structures juridiques françaises courantes : EURL et SASU.
-        \n\nComparez le salaire net, les dividendes et l'impact financier global pour prendre une décision éclairée et optimiser le revenu du président.
-        \n\nDéveloppée par L. Gardy, Data Scientist indépendant chez [Sotis A.I.](https://www.sotisai.com), cet outil offre une interface conviviale pour l'analyse financière.
+        Rendez-vous sur [sotisai.com](https://www.sotisai.com) pour en savoir plus, signaler un problème, une idée ou pour me contacter.
         """,
     }
 

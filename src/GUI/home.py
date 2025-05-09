@@ -1,11 +1,10 @@
-import streamlit as st
-import numpy as np
+import sys
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-
-import sys
 import yaml
 
 sys.path.append("..")
@@ -37,12 +36,20 @@ class StreamlitWidgets:
             value=st.session_state.get("charges_deductibles", 50000),
             step=1000,
         )
-        self.remuneration_president = st.sidebar.number_input(
-            "Rémunération annuelle (€)",
+        self.salaire_president = st.sidebar.number_input(
+            "Salaire annuel (€)",
             min_value=0,
-            value=st.session_state.get("remuneration president", 20000),
+            value=st.session_state.get("salaire president", 20000),
             step=1000,
         )
+
+        self.choix_fiscal_dividendes = st.sidebar.radio(
+            "Imposition des dividendes SASU",
+            options=["Flat tax (PFU 30%)", "Barème progressif (après abattement 40%)"],
+            index=0,
+            help="Choisissez le mode d'imposition des dividendes pour la SASU"
+        )
+
 
 class Home(StreamlitWidgets):
     def __init__(self):
@@ -63,7 +70,7 @@ class Home(StreamlitWidgets):
         self.eurl = EURL(
             ca_previsionnel=self.chiffre_affaire_HT,
             charges=self.charges_deductibles,
-            remuneration_president=self.remuneration_president,
+            salaire_president=self.salaire_president,
             taux_cotisation=config_yaml["EURL"]['salaires']['charges_sociales']['taux_cotisation'],
         )
 
@@ -77,12 +84,14 @@ class Home(StreamlitWidgets):
         self.sasu = SASU(
             ca_previsionnel=self.chiffre_affaire_HT,
             charges=self.charges_deductibles,
-            remuneration_president=self.remuneration_president,
+            salaire_president=self.salaire_president,
             taux_cotisation=config_yaml["SASU"]['salaires']['charges_sociales']['taux_cotisation'],
         )
 
         self.sasu.results['benefice_reel'], self.sasu.results['cotisations_president'] = self.sasu.calcul_benefice_reel()
-        self.sasu.results['impots_ir'] = self.sasu.calcul_impots_ir(tranches_ir=config_yaml['tranches_IR'])
+        mode = "flat_tax" if self.choix_fiscal_dividendes == "Flat tax (PFU 30%)" else "bareme"
+        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], mode_imposition=mode)
+        self.sasu.results['impots_ir'] = result_dividendes['impots_ir']
         self.sasu.results['impots_is'] = self.sasu.calcul_is(self.sasu.results['benefice_reel'])
         self.sasu.results['total_impots'] = self.sasu.calcul_total_impots(self.sasu.results['cotisations_president'], 
                                                                 self.sasu.results['impots_ir'], 
@@ -96,15 +105,21 @@ class Home(StreamlitWidgets):
 
         self.status_juridique = st.selectbox(
             label="Status juridique", 
-            options=["EURL", "SASU", "SASU & EURL"], 
+            options=["SASU", "EURL", "SASU & EURL"], 
             index=0
         )
+
+        # Calcul des dividendes nets selon le choix fiscal pour la SASU
+        mode = "flat_tax" if self.choix_fiscal_dividendes == "Flat tax (PFU 30%)" else "bareme"
+        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], mode_imposition=mode)
+        dividendes_net = result_dividendes['dividendes_net']
+        self.sasu.results["impots_ir"] = result_dividendes['impots_ir']
 
         data = {
             "Indicateurs": [
                 "Chiffre d'affaires prévisionnel",
                 "Dépenses réelles",
-                "Rémunération président",
+                "Salaire président",
                 "Cotisations président",
                 "Total dépenses réelles",
                 "Bénéfice réel",
@@ -113,55 +128,54 @@ class Home(StreamlitWidgets):
                 "TOTAL COTISATIONS ET IMPÔTS",
                 "Salaire net (post-IR)",
                 "Reste bénéfice net à distribuer (post-IS)",
-                "[Optionnel] Divdendes net à la flat tax",
+                f"Dividendes net : {self.choix_fiscal_dividendes}",
             ],
             "EURL": [
                 f'<span style="color:blue">{self.eurl.ca_previsionnel}</span>',
                 f'<span style="color:blue">{self.eurl.charges}</span>',
-                f'<span style="color:blue">{self.eurl.remuneration_president}</span>',
+                f'<span style="color:blue">{self.eurl.salaire_president}</span>',
                 f'<span style="color:red">{self.eurl.results["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.eurl.charges + self.eurl.remuneration_president + self.eurl.results["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.eurl.charges + self.eurl.salaire_president + self.eurl.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.eurl.results["benefice_reel"]}</span>',
                 f'<span style="color:red">{self.eurl.results["impots_ir"]}</span>',
                 f'<span style="color:red">{self.eurl.results["impots_is"]}</span>',
                 f'<span style="color:red">{self.eurl.results["total_impots"]}</span>',
-                f'<span style="color:green">{self.eurl.remuneration_president - self.eurl.results["impots_ir"]}</span>',
+                f'<span style="color:green">{self.eurl.salaire_president - self.eurl.results["impots_ir"]}</span>',
                 f'<span style="color:blue">{self.eurl.results["benefice_reel"] - self.eurl.results["impots_is"]}</span>',
                 f'<span style="color:green">{None}</span>',
             ],
             "SASU": [
                 f'<span style="color:blue">{self.sasu.ca_previsionnel}</span>',
                 f'<span style="color:blue">{self.sasu.charges}</span>',
-                f'<span style="color:blue">{self.sasu.remuneration_president}</span>',
+                f'<span style="color:blue">{self.sasu.salaire_president}</span>',
                 f'<span style="color:red">{self.sasu.results["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.sasu.charges + self.sasu.remuneration_president + self.sasu.results["cotisations_president"]}</span>',
+                f'<span style="color:yellow">{self.sasu.charges + self.sasu.salaire_president + self.sasu.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.sasu.results["benefice_reel"]}</span>',
                 f'<span style="color:red">{self.sasu.results["impots_ir"]}</span>',
                 f'<span style="color:red">{self.sasu.results["impots_is"]}</span>',
                 f'<span style="color:red">{self.sasu.results["total_impots"]}</span>',
-                f'<span style="color:green">{self.sasu.remuneration_president - self.sasu.results["impots_ir"]}</span>',
+                f'<span style="color:green">{self.sasu.salaire_president - self.sasu.results["impots_ir"]}</span>',
                 f'<span style="color:blue">{self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]}</span>',
-                f'<span style="color:green">{(self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7}</span>',
+                f'<span style="color:green">{dividendes_net:.2f}</span>',
             ]
         }
 
         if self.status_juridique == "EURL":
             df_results = pd.DataFrame(data)[["Indicateurs", "EURL"]]
-            salaire_net_post_ir = self.eurl.remuneration_president - self.eurl.results["impots_ir"]
+            salaire_net_post_ir = self.eurl.salaire_president - self.eurl.results["impots_ir"]
             reste_benefice_net_a_distribuer = self.eurl.results["benefice_reel"] - self.eurl.results["impots_is"]
-            dividendes_net_flat_tax = 0
+            dividendes_net = 0
             msg_label = "Reste dans la société"
         elif self.status_juridique == "SASU":
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
-            salaire_net_post_ir = self.sasu.remuneration_president - self.sasu.results["impots_ir"]
+            salaire_net_post_ir = self.sasu.salaire_president - self.sasu.results["impots_ir"]
             reste_benefice_net_a_distribuer = 0
-            dividendes_net_flat_tax = (self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]) * 0.7
             msg_label = "Reste dans la société après versement des dividendes"
         else:
             df_results = pd.DataFrame(data)
             salaire_net_post_ir = np.nan
             reste_benefice_net_a_distribuer = np.nan
-            dividendes_net_flat_tax = np.nan
+            dividendes_net = np.nan
 
         with st.container(border=True):
             st.write(df_results.to_html(escape=False), unsafe_allow_html=True)
@@ -173,7 +187,7 @@ class Home(StreamlitWidgets):
                     st.warning("La société n'a pas suffisamment de fonds à distribuer.")
                 else:
                     st.write("Total NET disponible pour le président après toutes les charges, y compris IR")
-                    st.success(f"{np.round(salaire_net_post_ir + dividendes_net_flat_tax,2)} €")
+                    st.success(f"{np.round(salaire_net_post_ir + dividendes_net,2)} €")
                     st.write(msg_label)
                     st.info(f"{np.round(reste_benefice_net_a_distribuer,2)} €")
             else:

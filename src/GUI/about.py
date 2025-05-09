@@ -69,7 +69,7 @@ class About:
         st.write("""
             #### Contact et Support
 
-            Pour toute question ou assistance, n'hésitez pas à nous [contacter](https://sotisanalytics.com/contact).
+            Pour toute question ou assistance, n'hésitez pas à nous [contacter](https://www.sotisai.com/contact).
 
             Nous espérons que cette application vous sera utile et vous permettra d'optimiser efficacement vos revenus en tant que président de SASU ou EURL. Merci d'utiliser notre application et bonne optimisation !
             """)

@@ -122,7 +122,7 @@ class Home(StreamlitWidgets):
                 "Salaire président",
                 "Cotisations président",
                 "Total dépenses réelles",
-                "Bénéfice réel",
+                "Bénéfice réel (assujetti à IS)",
                 "Impôts sur le revenu",
                 "Impôts sur les sociétés",
                 "TOTAL COTISATIONS ET IMPÔTS",
@@ -202,7 +202,7 @@ class Home(StreamlitWidgets):
         eurl_results = self.eurl.results
 
         # Données à comparer
-        labels = ["Bénéfice réel", "Cotisations président", "Impôts IR", "Impôts IS", "Total impôts"]
+        labels = ["Bénéfice réel (assujetti à IS)", "Cotisations président", "Impôts IR", "Impôts IS", "Total impôts"]
         sasu_values = [
             sasu_results["benefice_reel"],
             sasu_results["cotisations_president"],

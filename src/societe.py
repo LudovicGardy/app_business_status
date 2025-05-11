@@ -45,7 +45,7 @@ class Societe(ABC):
         logs.append(f"Total dépenses réelles: {self.charges + self.salaire_president + cotisations_president}")
         logs.append("")
         logs.append("-----------------------------------------------------")
-        logs.append(f"Bénéfice réel: {benefice_reel}")
+        logs.append(f"Bénéfice réel (assujetti à IS): {benefice_reel}")
         logs.append("C'est ce montant que l'administration fiscale va retenir.")
         logs.append("-----------------------------------------------------\n")
         logs.append("-----------------------------------------------------")

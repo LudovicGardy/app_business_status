@@ -83,27 +83,46 @@ class SASU(Societe):
             mode_imposition (str): 'flat_tax' ou 'bareme'
         Returns:
             dict: {
-                'dividendes_net': montant net,
-                'dividendes_imposables': base après abattement,
-                'impots_ir': montant total IR (salaire + dividendes si barème, sinon IR sur salaire seul)
+                'dividendes_net': Montant net perçu sur les dividendes,
+                'dividendes_imposables': Base IR après abattement (barème),
+                'impots_ir': Montant total IR (salaire + dividendes abattus si barème, sinon IR sur salaire seul),
+                'impots_flat_tax': IR sur dividendes (flat tax),
+                'prelevements_sociaux': Prélèvements sociaux sur dividendes,
+                'base_ir_totale': Base IR totale utilisée (barème),
+                'mode_imposition': mode,
             }
         """
         from src.impot_revenu import calcul_IR
         benefice_distribuable = self.results.get("benefice_reel", 0) - self.results.get("impots_is", 0)
         if benefice_distribuable < 0:
             benefice_distribuable = 0
+
+        # Prélèvements sociaux sur dividendes (toujours 17,2% sur brut)
+        prelevements_sociaux = benefice_distribuable * 0.172 if benefice_distribuable > 0 else 0.0
+
         if mode_imposition == "flat_tax":
-            dividendes_net = benefice_distribuable * 0.7
-            dividendes_imposables = benefice_distribuable
+            # Flat tax : IR 12,8% + PS 17,2% sur dividendes
+            impots_flat_tax = benefice_distribuable * 0.128
+            dividendes_net = benefice_distribuable - impots_flat_tax - prelevements_sociaux
+            dividendes_imposables = benefice_distribuable  # pas d'abattement
+            # IR sur salaire UNIQUEMENT (flat tax sur dividendes déjà inclus)
             impots_ir = self.calcul_impots_ir(tranches_ir)
+            base_ir_totale = self.salaire_president
         else:
-            # Barème progressif après abattement de 40%
+            # Barème progressif : abattement 40% sur dividendes, ajout au salaire, IR sur le total
             dividendes_imposables = benefice_distribuable * 0.6
             base_ir_totale = self.salaire_president + dividendes_imposables
             impots_ir = calcul_IR(tranches_ir, base_ir_totale)
-            dividendes_net = dividendes_imposables  # Le net réel est dans le solde final
+            # Prélèvements sociaux restent dus sur le brut
+            dividendes_net = benefice_distribuable - prelevements_sociaux - (impots_ir - self.calcul_impots_ir(tranches_ir))
+            # impots_ir - self.calcul_impots_ir(tranches_ir) = part IR sur dividendes
+            impots_flat_tax = 0.0  # pas de flat tax en barème
         return {
             'dividendes_net': dividendes_net,
             'dividendes_imposables': dividendes_imposables,
-            'impots_ir': impots_ir
+            'impots_ir': impots_ir,
+            'impots_flat_tax': impots_flat_tax,
+            'prelevements_sociaux': prelevements_sociaux,
+            'base_ir_totale': base_ir_totale,
+            'mode_imposition': mode_imposition,
         }

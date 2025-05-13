@@ -115,6 +115,14 @@ class Home(StreamlitWidgets):
         dividendes_net = result_dividendes['dividendes_net']
         self.sasu.results["impots_ir"] = result_dividendes['impots_ir']
 
+        # Préparation des valeurs pour la SASU en fonction du mode d'imposition
+        if mode == "flat_tax":
+            impots_ir_total = self.sasu.results["impots_ir"] + result_dividendes["impots_flat_tax"]
+            prelevements_sociaux = result_dividendes["prelevements_sociaux"]
+        else:
+            impots_ir_total = self.sasu.results["impots_ir"]
+            prelevements_sociaux = result_dividendes["prelevements_sociaux"]
+
         data = {
             "Indicateurs": [
                 "Chiffre d'affaires prévisionnel",
@@ -123,6 +131,7 @@ class Home(StreamlitWidgets):
                 "Cotisations président",
                 "Total dépenses réelles",
                 "Bénéfice réel (assujetti à IS)",
+                "Prélèvements sociaux sur dividendes",
                 "Impôts sur le revenu",
                 "Impôts sur les sociétés",
                 "TOTAL COTISATIONS ET IMPÔTS",
@@ -137,6 +146,7 @@ class Home(StreamlitWidgets):
                 f'<span style="color:red">{self.eurl.results["cotisations_president"]}</span>',
                 f'<span style="color:yellow">{self.eurl.charges + self.eurl.salaire_president + self.eurl.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.eurl.results["benefice_reel"]}</span>',
+                f'<span style="color:red">-</span>',
                 f'<span style="color:red">{self.eurl.results["impots_ir"]}</span>',
                 f'<span style="color:red">{self.eurl.results["impots_is"]}</span>',
                 f'<span style="color:red">{self.eurl.results["total_impots"]}</span>',
@@ -151,11 +161,12 @@ class Home(StreamlitWidgets):
                 f'<span style="color:red">{self.sasu.results["cotisations_president"]}</span>',
                 f'<span style="color:yellow">{self.sasu.charges + self.sasu.salaire_president + self.sasu.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.sasu.results["benefice_reel"]}</span>',
-                f'<span style="color:red">{self.sasu.results["impots_ir"]}</span>',
+                f'<span style="color:red">{prelevements_sociaux:.2f}</span>',
+                f'<span style="color:red">{impots_ir_total:.2f}</span>',
                 f'<span style="color:red">{self.sasu.results["impots_is"]}</span>',
-                f'<span style="color:red">{self.sasu.results["total_impots"]}</span>',
-                f'<span style="color:green">{self.sasu.salaire_president - self.sasu.results["impots_ir"]}</span>',
-                f'<span style="color:blue">{self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]}</span>',
+                f'<span style="color:red">{self.sasu.results["cotisations_president"] + prelevements_sociaux + impots_ir_total + self.sasu.results["impots_is"]:.2f}</span>',
+                f'<span style="color:green">{self.sasu.salaire_president - self.sasu.results["impots_ir"]:.2f}</span>',
+                f'<span style="color:blue">{self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"]:.2f}</span>',
                 f'<span style="color:green">{dividendes_net:.2f}</span>',
             ]
         }

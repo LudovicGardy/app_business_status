@@ -75,35 +75,60 @@ class SASU(Societe):
     def calcul_cotisations_president(self):
         return self.salaire_president * (self.taux_cotisation / 100)
 
-    def calcul_dividendes_net(self, tranches_ir, mode_imposition="flat_tax"):
+    def calcul_dividendes_net(self, tranches_ir, config_yaml, mode_imposition="flat_tax"):
         """
         Calcule les dividendes nets pour la SASU selon le mode d'imposition choisi.
         Args:
             tranches_ir (list): tranches d'IR
+            config_yaml (dict): configuration extraite du YAML
             mode_imposition (str): 'flat_tax' ou 'bareme'
         Returns:
             dict: {
-                'dividendes_net': montant net,
-                'dividendes_imposables': base après abattement,
-                'impots_ir': montant total IR (salaire + dividendes si barème, sinon IR sur salaire seul)
+                'dividendes_net': Montant net perçu sur les dividendes,
+                'dividendes_imposables': Base IR après abattement (barème),
+                'impots_ir': Montant total IR (salaire + dividendes abattus si barème, sinon IR sur salaire seul),
+                'impots_flat_tax': IR sur dividendes (flat tax),
+                'prelevements_sociaux': Prélèvements sociaux sur dividendes,
+                'base_ir_totale': Base IR totale utilisée (barème),
+                'mode_imposition': mode,
             }
         """
         from src.impot_revenu import calcul_IR
         benefice_distribuable = self.results.get("benefice_reel", 0) - self.results.get("impots_is", 0)
         if benefice_distribuable < 0:
             benefice_distribuable = 0
+
+        # Extraction des taux depuis la config YAML
+        prelevements_sociaux_taux = config_yaml["SASU"]["dividendes"].get("prelevements_sociaux_total", 17.2) / 100
+        tmi_taux = config_yaml["SASU"]["dividendes"].get("TMI", 12.8) / 100
+        abattement_dividendes = config_yaml["SASU"]["dividendes"].get("abattement", 40) / 100
+
+        # Prélèvements sociaux sur dividendes (toujours sur brut)
+        prelevements_sociaux = benefice_distribuable * prelevements_sociaux_taux if benefice_distribuable > 0 else 0.0
+
         if mode_imposition == "flat_tax":
-            dividendes_net = benefice_distribuable * 0.7
-            dividendes_imposables = benefice_distribuable
+            # Flat tax : IR 12,8% + PS sur dividendes
+            impots_flat_tax = benefice_distribuable * tmi_taux
+            dividendes_net = benefice_distribuable - impots_flat_tax - prelevements_sociaux
+            dividendes_imposables = benefice_distribuable  # pas d'abattement
+            # IR sur salaire UNIQUEMENT (flat tax sur dividendes déjà inclus)
             impots_ir = self.calcul_impots_ir(tranches_ir)
+            base_ir_totale = self.salaire_president
         else:
-            # Barème progressif après abattement de 40%
-            dividendes_imposables = benefice_distribuable * 0.6
+            # Barème progressif : abattement sur dividendes, ajout au salaire, IR sur le total
+            dividendes_imposables = benefice_distribuable * (1 - abattement_dividendes)
             base_ir_totale = self.salaire_president + dividendes_imposables
             impots_ir = calcul_IR(tranches_ir, base_ir_totale)
-            dividendes_net = dividendes_imposables  # Le net réel est dans le solde final
+            # Prélèvements sociaux restent dus sur le brut
+            dividendes_net = benefice_distribuable - prelevements_sociaux - (impots_ir - self.calcul_impots_ir(tranches_ir))
+            # impots_ir - self.calcul_impots_ir(tranches_ir) = part IR sur dividendes
+            impots_flat_tax = 0.0  # pas de flat tax en barème
         return {
             'dividendes_net': dividendes_net,
             'dividendes_imposables': dividendes_imposables,
-            'impots_ir': impots_ir
+            'impots_ir': impots_ir,
+            'impots_flat_tax': impots_flat_tax,
+            'prelevements_sociaux': prelevements_sociaux,
+            'base_ir_totale': base_ir_totale,
+            'mode_imposition': mode_imposition,
         }

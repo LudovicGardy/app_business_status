@@ -21,6 +21,7 @@ SASU:
       - CSG_non_deductible: 2.4 # (%) Contribution Sociale Généralisée
       - CRDS: 0.5 # (%) Contribution pour le Remboursement de la Dette Sociale
       - solidarite: 7.5 # (%) Contribution pour la Solidarité
+    prelevements_sociaux_total: 17.2 # (%) Taux global des prélèvements sociaux
     TMI: 12.8  # (%) Taux Marginal d'Imposition (non-cumulatif avec IR)
     abattement: 40  # (%)
   tranches_IS:

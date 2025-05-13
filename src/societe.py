@@ -75,11 +75,12 @@ class SASU(Societe):
     def calcul_cotisations_president(self):
         return self.salaire_president * (self.taux_cotisation / 100)
 
-    def calcul_dividendes_net(self, tranches_ir, mode_imposition="flat_tax"):
+    def calcul_dividendes_net(self, tranches_ir, config_yaml, mode_imposition="flat_tax"):
         """
         Calcule les dividendes nets pour la SASU selon le mode d'imposition choisi.
         Args:
             tranches_ir (list): tranches d'IR
+            config_yaml (dict): configuration extraite du YAML
             mode_imposition (str): 'flat_tax' ou 'bareme'
         Returns:
             dict: {
@@ -97,20 +98,25 @@ class SASU(Societe):
         if benefice_distribuable < 0:
             benefice_distribuable = 0
 
-        # Prélèvements sociaux sur dividendes (toujours 17,2% sur brut)
-        prelevements_sociaux = benefice_distribuable * 0.172 if benefice_distribuable > 0 else 0.0
+        # Extraction des taux depuis la config YAML
+        prelevements_sociaux_taux = config_yaml["SASU"]["dividendes"].get("prelevements_sociaux_total", 17.2) / 100
+        tmi_taux = config_yaml["SASU"]["dividendes"].get("TMI", 12.8) / 100
+        abattement_dividendes = config_yaml["SASU"]["dividendes"].get("abattement", 40) / 100
+
+        # Prélèvements sociaux sur dividendes (toujours sur brut)
+        prelevements_sociaux = benefice_distribuable * prelevements_sociaux_taux if benefice_distribuable > 0 else 0.0
 
         if mode_imposition == "flat_tax":
-            # Flat tax : IR 12,8% + PS 17,2% sur dividendes
-            impots_flat_tax = benefice_distribuable * 0.128
+            # Flat tax : IR 12,8% + PS sur dividendes
+            impots_flat_tax = benefice_distribuable * tmi_taux
             dividendes_net = benefice_distribuable - impots_flat_tax - prelevements_sociaux
             dividendes_imposables = benefice_distribuable  # pas d'abattement
             # IR sur salaire UNIQUEMENT (flat tax sur dividendes déjà inclus)
             impots_ir = self.calcul_impots_ir(tranches_ir)
             base_ir_totale = self.salaire_president
         else:
-            # Barème progressif : abattement 40% sur dividendes, ajout au salaire, IR sur le total
-            dividendes_imposables = benefice_distribuable * 0.6
+            # Barème progressif : abattement sur dividendes, ajout au salaire, IR sur le total
+            dividendes_imposables = benefice_distribuable * (1 - abattement_dividendes)
             base_ir_totale = self.salaire_president + dividendes_imposables
             impots_ir = calcul_IR(tranches_ir, base_ir_totale)
             # Prélèvements sociaux restent dus sur le brut

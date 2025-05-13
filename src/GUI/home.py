@@ -90,7 +90,7 @@ class Home(StreamlitWidgets):
 
         self.sasu.results['benefice_reel'], self.sasu.results['cotisations_president'] = self.sasu.calcul_benefice_reel()
         mode = "flat_tax" if self.choix_fiscal_dividendes == "Flat tax (PFU 30%)" else "bareme"
-        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], mode_imposition=mode)
+        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], config_yaml, mode_imposition=mode)
         self.sasu.results['impots_ir'] = result_dividendes['impots_ir']
         self.sasu.results['impots_is'] = self.sasu.calcul_is(self.sasu.results['benefice_reel'])
         self.sasu.results['total_impots'] = self.sasu.calcul_total_impots(self.sasu.results['cotisations_president'], 
@@ -111,7 +111,7 @@ class Home(StreamlitWidgets):
 
         # Calcul des dividendes nets selon le choix fiscal pour la SASU
         mode = "flat_tax" if self.choix_fiscal_dividendes == "Flat tax (PFU 30%)" else "bareme"
-        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], mode_imposition=mode)
+        result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], config_yaml, mode_imposition=mode)
         dividendes_net = result_dividendes['dividendes_net']
         self.sasu.results["impots_ir"] = result_dividendes['impots_ir']
 
@@ -144,7 +144,7 @@ class Home(StreamlitWidgets):
                 f'<span style="color:blue">{self.eurl.charges}</span>',
                 f'<span style="color:blue">{self.eurl.salaire_president}</span>',
                 f'<span style="color:red">{self.eurl.results["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.eurl.charges + self.eurl.salaire_president + self.eurl.results["cotisations_president"]}</span>',
+                f'<span style="color:orange">{self.eurl.charges + self.eurl.salaire_president + self.eurl.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.eurl.results["benefice_reel"]}</span>',
                 f'<span style="color:red">-</span>',
                 f'<span style="color:red">{self.eurl.results["impots_ir"]}</span>',
@@ -159,7 +159,7 @@ class Home(StreamlitWidgets):
                 f'<span style="color:blue">{self.sasu.charges}</span>',
                 f'<span style="color:blue">{self.sasu.salaire_president}</span>',
                 f'<span style="color:red">{self.sasu.results["cotisations_president"]}</span>',
-                f'<span style="color:yellow">{self.sasu.charges + self.sasu.salaire_president + self.sasu.results["cotisations_president"]}</span>',
+                f'<span style="color:orange">{self.sasu.charges + self.sasu.salaire_president + self.sasu.results["cotisations_president"]}</span>',
                 f'<span style="color:blue">{self.sasu.results["benefice_reel"]}</span>',
                 f'<span style="color:red">{prelevements_sociaux:.2f}</span>',
                 f'<span style="color:red">{impots_ir_total:.2f}</span>',

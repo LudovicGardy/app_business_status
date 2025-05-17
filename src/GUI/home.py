@@ -215,7 +215,6 @@ class Home(StreamlitWidgets):
             df_results = pd.DataFrame(data)[["Indicateurs", "SASU"]]
             salaire_net_post_ir = self.sasu.salaire_president - self.sasu.results["impots_ir"]
             reste_benefice_net_a_distribuer = 0
-            dividendes_net = dividendes_net  # Réutilisation de la variable calculée plus haut
             msg_label = "Reste dans la société après versement des dividendes"
         else:  # SASU & EURL
             # Afficher SASU à gauche et EURL à droite
@@ -246,7 +245,7 @@ class Home(StreamlitWidgets):
                 mode = "flat_tax" if self.choix_fiscal_dividendes == "Flat tax (PFU 30%)" else "bareme"
                 sasu_result_dividendes = self.sasu.calcul_dividendes_net(config_yaml['tranches_IR'], config_yaml, mode_imposition=mode)
                 sasu_dividendes_net = sasu_result_dividendes['dividendes_net']
-                sasu_reste_benefice = self.sasu.results["benefice_reel"] - self.sasu.results["impots_is"] - sasu_dividendes_net
+                sasu_reste_benefice_net_a_distribuer = 0
                 
                 # Calcul pour EURL
                 eurl_salaire_net_post_ir = self.eurl.salaire_president - self.eurl.results["impots_ir"]
@@ -263,7 +262,7 @@ class Home(StreamlitWidgets):
                         st.write("Total NET disponible pour le président après toutes les charges, y compris IR")
                         st.success(f"{np.round(sasu_salaire_net_post_ir + sasu_dividendes_net, 2)} €")
                         st.write("Reste dans la société après versement des dividendes")
-                        st.info(f"{np.round(sasu_reste_benefice, 2)} €")
+                        st.info(f"{np.round(sasu_reste_benefice_net_a_distribuer, 2)} €")
                     
                     # Affichage pour EURL
                     with col2:

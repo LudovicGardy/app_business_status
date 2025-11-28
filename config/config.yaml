@@ -13,7 +13,7 @@ TVA:
 SASU:
   salaires:
     charges_sociales:
-      taux_cotisation: 70  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.85 = 55500€
+      taux_cotisation: 70  # (%) pour 30000€ de salaire net, l'entreprise payera 30000 + 30000 * 0.70 = 55500€
       taux_inverse_approximatif: 46  # (%) si l'entreprise verse 55500€, le salarié touchera 55500 - 55500 * 0.46 = 29970€
   dividendes:
     prelevements_sociaux: 
